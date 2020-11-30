@@ -15,18 +15,18 @@ public class AraneaLogger {
   private static AraneaLogger araneaLogger = null;
   private static FileHandler outputFile = null;
   private static Logger logger = null;
-  private static Level minLevel = null;
+  private static Level minLevel = Level.INFO;
 
   private AraneaLogger() {}
 
-  public void setOutputFile(String filename) {
+  public void setOutputFile(String filename) throws OpenFileException {
     logger = Logger.getLogger("com.aranea.AraneaLogger");
     logger.setUseParentHandlers(false);
 
     try {
       outputFile = new FileHandler(filename, true);
     } catch (IOException e) {
-      // TODO(@iosifache): Add custom exception after its base class implementation
+      throw new OpenFileException();
     }
     outputFile.setFormatter(new AraneaLoggerFormatter());
     outputFile.setFilter(new AraneaLoggerFilter());
@@ -87,12 +87,30 @@ public class AraneaLogger {
     }
   }
 
-  private void exemplifyUsage(){
-    AraneaLogger logger = AraneaLogger.getInstance();
-    logger.setOutputFile("log.txt");
-    logger.setMinLevel(AraneaLoggerLevels.WARNING);
-    logger.log(AraneaLoggerLevels.INFO, "Information example");
-    AraneaLogger another_logger = AraneaLogger.getInstance();
-    another_logger.log(AraneaLoggerLevels.ERROR, "Error example");
+  static public class OpenFileException extends AraneaException {
+    public OpenFileException() {
+      super(AraneaLoggerLevels.CRITICAL, "The log file could not be opened.");
+    }
+  }
+
+  private void exemplifyUsage() {
+
+    try {
+
+      // Get instance, set output file and minimum level of an exception to log it and log a message
+      AraneaLogger logger = AraneaLogger.getInstance();
+      logger.setOutputFile("log.txt");
+      logger.setMinLevel(AraneaLoggerLevels.WARNING);
+      logger.log(AraneaLoggerLevels.INFO, "Information example");
+
+      // Get the instance again and log a message
+      AraneaLogger another_logger = AraneaLogger.getInstance();
+      another_logger.log(AraneaLoggerLevels.ERROR, "Error example");
+
+    } catch (AraneaException e) {
+
+      // If an exception is thrown, exit the program
+      System.exit(1);
+    }
   }
 }
