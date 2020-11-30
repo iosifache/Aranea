@@ -37,10 +37,9 @@ public class AraneaException extends Exception {
     }
   }
 
-  public class ChildException extends AraneaException{
-    public ChildException(){
+  public class ChildException extends AraneaException {
+    public ChildException() {
       super(AraneaLoggerLevels.ERROR, "An error occurred.");
     }
   }
-
 }
