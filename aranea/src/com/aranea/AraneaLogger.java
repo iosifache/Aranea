@@ -19,14 +19,14 @@ public class AraneaLogger {
 
   private AraneaLogger() {}
 
-  public void setOutputFile(String filename) throws OpenFileException {
+  public void setOutputFile(String filename) throws LoggerOpenFileException {
     logger = Logger.getLogger("com.aranea.AraneaLogger");
     logger.setUseParentHandlers(false);
 
     try {
       outputFile = new FileHandler(filename, true);
     } catch (IOException e) {
-      throw new OpenFileException();
+      throw new LoggerOpenFileException();
     }
     outputFile.setFormatter(new AraneaLoggerFormatter());
     outputFile.setFilter(new AraneaLoggerFilter());
@@ -65,6 +65,15 @@ public class AraneaLogger {
       else if (level == Level.OFF) return "CRITICAL";
       return "INFO";
     }
+
+    static AraneaLoggerLevels createFromIntLevel(int logLevel){
+      return switch (logLevel) {
+        case 1 -> AraneaLoggerLevels.WARNING;
+        case 2 -> AraneaLoggerLevels.ERROR;
+        case 3 -> AraneaLoggerLevels.CRITICAL;
+        default -> AraneaLoggerLevels.INFO;
+      };
+    }
   }
 
   private static class AraneaLoggerFormatter extends Formatter {
@@ -87,8 +96,8 @@ public class AraneaLogger {
     }
   }
 
-  static public class OpenFileException extends AraneaException {
-    public OpenFileException() {
+  static public class LoggerOpenFileException extends AraneaException {
+    public LoggerOpenFileException() {
       super(AraneaLoggerLevels.CRITICAL, "The log file could not be opened.");
     }
   }
