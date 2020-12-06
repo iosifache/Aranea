@@ -17,7 +17,7 @@ public class AraneaLogger {
   private static Logger logger = null;
   private static Level minLevel = Level.INFO;
 
-  private AraneaLogger() {}
+  AraneaLogger() {}
 
   public void setOutputFile(String filename) throws LoggerOpenFileException {
     logger = Logger.getLogger("com.aranea.AraneaLogger");
