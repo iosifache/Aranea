@@ -32,21 +32,22 @@ public class Aranea {
    * Instance of class Crawler
    * This object is responsible for web crawling.
    */
+  static Aranea araneaInstance = null;
   private Crawler[] crawlerArray;
   private URLQueue urlQueue = null;
-  private Sieve sieve = null;
+  static private Sieve sieve = null;
   private ExtensionFinder extensionFinder = null;
   private PatternFinder patternFinder = null;
   private SitemapGenerator sitemapGenerator = null;
 
-  private AraneaLogger araneaLogger = null;
-  private AraneaConfiguration araneaConfiguration = null;
+  static private AraneaLogger araneaLogger = null;
+  static private AraneaConfiguration araneaConfiguration = null;
 
   /**
    * @param file a specific path to file contains configuration data
    * any key not properly configured generates a WARNING message
    */
-  private void initConfiguration(String file)
+  static private void initConfiguration(String file)
           throws AraneaConfiguration.ConfigurationOpenFileException,
           AraneaConfiguration.ConfigurationMissingKeysException {
   try {
@@ -65,7 +66,7 @@ public class Aranea {
    * assign private member araneaLogger to corresponding
    * Singleton class AraneaLogger
    */
-  private void initLogger() throws AraneaException {
+  static private void initLogger() throws AraneaException {
 
     try {
 
@@ -84,7 +85,7 @@ public class Aranea {
    * assign private member sieve to corresponding
    * Singlenton class Sieve
    */
-  private  void initSieve() {
+  static private  void initSieve() {
 
     Sieve sieve = Sieve.getInstance();
 
@@ -312,7 +313,7 @@ public class Aranea {
    * @param commands string array of keyword
    * @throws AraneaException if command does not exist
    */
-  Aranea(String[] commands) throws AraneaException {
+   private Aranea(String[] commands) throws AraneaException {
 
     //default init
     //@TODO: Best to create an emplty constructor for default conf
@@ -340,6 +341,18 @@ public class Aranea {
 
   }
 
+  public  static Aranea getInstance(String[] argv) {
+
+     try {
+       if(araneaInstance == null) {
+         araneaInstance = new Aranea(argv);
+       }
+     } catch (AraneaException e) {
+       e.logException(araneaLogger);
+     }
+
+     return araneaInstance;
+  }
 
   /**
    *
@@ -350,17 +363,12 @@ public class Aranea {
           MalformedURLException, FileNotFoundException {
 
 
-    Aranea aranea = null;
-
-    try {
-      aranea = new Aranea(argv);
-     
-    } catch (AraneaException e) {
+    Aranea aranea = Aranea.getInstance(argv);
 
      System.out.println("Aranea says BYE :)");
     }
 
 
 
-  }
+
 }
