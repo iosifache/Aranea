@@ -16,7 +16,7 @@ public class PatternFinder extends FolderParser {
     }
 
     @Override
-    public void parse() throws FolderParser.CannotOpenException {
+    public void parse() throws AraneaException {
         try {
             Files.walk(this.getFolderPath())          // Recursively walk through the working directory
                     .filter(this::processFile)   // Filter them by the searched extension

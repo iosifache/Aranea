@@ -1,7 +1,6 @@
 package com.aranea;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,16 +19,22 @@ public class SitemapGenerator extends FolderParser {
     }
 
     @Override
-    public void processFile() throws IOException {
-        Files.walk(this.getFolderPath())          // Recursively walk through the working directory
-                .forEach(this::registerDirToSystemMap);
-        printToOutputFile();
+    public void parse() throws AraneaException {
+        try {
+            Files.walk(this.getFolderPath())          // Recursively walk through the working directory
+                    .forEach(this::processFile);
+            printToOutputFile();
+        } catch (Exception e) {
+            throw new FolderParser.CannotOpenException();
+        }
+
     }
 
-    private void registerDirToSystemMap(Path path) {
+    protected boolean processFile(Path path) {
         File currentFile = path.toFile();
         if (currentFile.isDirectory())
             systemMap.put(currentFile.getName(), fetchDirFiles(currentFile));
+        return true;
     }
 
     private List<String> fetchDirFiles(File currentFile) {
@@ -46,12 +51,12 @@ public class SitemapGenerator extends FolderParser {
         return dirFileNames;
     }
 
-    private void printToOutputFile() {
+    private void printToOutputFile() throws CannotWriteException {
         byte[] desiredMap = "The desired map".getBytes();
         try {
             Files.write(outputFile, desiredMap, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            System.out.println(String.format("There was a problem while truncating file %s", outputFile.getFileName()));
+        } catch (Exception e) {
+            throw new CannotWriteException();
         }
         systemMap.forEach((dirName, dirContent) -> {
             printDirName(dirName);
@@ -59,23 +64,29 @@ public class SitemapGenerator extends FolderParser {
         });
     }
 
-    private void printDirName(String dirName) {
+    private void printDirName(String dirName) throws CannotWriteException {
         byte[] formattedDirName = String.format("%s\n", dirName).getBytes();
         try {
             Files.write(outputFile, formattedDirName, StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            System.out.println(String.format("There was a problem while writing Directory %s content", dirName));
+        } catch (Exception e) {
+            throw new CannotWriteException();
         }
     }
 
-    private void printDirFiles(List<String> dirContent) {
+    private void printDirFiles(List<String> dirContent) throws CannotWriteException {
         dirContent.forEach(fileName -> {
             byte[] formattedFileName = String.format("\t%s\n", fileName).getBytes();
             try {
                 Files.write(outputFile, formattedFileName, StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                System.out.println(String.format("There was a problem while writing File %s", fileName));
+            } catch (Exception e) {
+                throw new CannotWriteException();
             }
         });
+    }
+
+    public class CannotWriteException extends AraneaException {
+        public CannotWriteException() {
+            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Cannot write to file.");
+        }
     }
 }
