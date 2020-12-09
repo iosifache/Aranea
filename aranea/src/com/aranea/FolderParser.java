@@ -14,12 +14,16 @@ public abstract class FolderParser {
 
     public abstract void processFile() throws IOException;
 
-    protected void parse() {
-        // Unclear what to do here
-    }
-
+    protected abstract void parse();
 
     public Path getFolderPath() {
         return folderPath;
     }
+
+    public class CannotOpenException extends AraneaException {
+        public CannotOpenException() {
+            super(AraneaLogger.AraneaLoggerLevels.ERROR, "The File cannot be opened.");
+        }
+    }
+
 }
