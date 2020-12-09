@@ -1,6 +1,5 @@
 package com.aranea;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -12,9 +11,9 @@ public abstract class FolderParser {
         this.folderPath = Paths.get(folderPath);
     }
 
-    public abstract void processFile() throws IOException;
+    protected abstract boolean processFile(Path path);
 
-    protected abstract void parse();
+    public abstract void parse() throws CannotOpenException;
 
     public Path getFolderPath() {
         return folderPath;
