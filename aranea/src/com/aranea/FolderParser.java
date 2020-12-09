@@ -1,6 +1,5 @@
 package com.aranea;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -12,14 +11,18 @@ public abstract class FolderParser {
         this.folderPath = Paths.get(folderPath);
     }
 
-    public abstract void processFile() throws IOException;
+    protected abstract boolean processFile(Path path);
 
-    protected void parse() {
-        // Unclear what to do here
-    }
-
+    public abstract void parse() throws CannotOpenException;
 
     public Path getFolderPath() {
         return folderPath;
     }
+
+    public class CannotOpenException extends AraneaException {
+        public CannotOpenException() {
+            super(AraneaLogger.AraneaLoggerLevels.ERROR, "The File cannot be opened.");
+        }
+    }
+
 }
