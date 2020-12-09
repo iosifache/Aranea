@@ -1,7 +1,8 @@
 package com.aranea;
 
 
-import java.io.IOException;
+import com.aranea.FolderParser.CannotOpenException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -15,22 +16,23 @@ public class PatternFinder extends FolderParser {
     }
 
     @Override
-    public void processFile() throws IOException {
-        Files.walk(this.getFolderPath())          // Recursively walk through the working directory
-                .filter(this::fileFitsPattern)   // Filter them by the searched extension
-                .forEach(this::printFileName);             // Print the filtered collection
+    public void parse() throws FolderParser.CannotOpenException {
+        try {
+            Files.walk(this.getFolderPath())          // Recursively walk through the working directory
+                    .filter(this::processFile)   // Filter them by the searched extension
+                    .forEach(System.out::println);             // Print the filtered collection
+        } catch (Exception e) {
+            throw new FolderParser.CannotOpenException();
+        }
+
     }
 
-    private void printFileName(Path path) {
-        System.out.println(path.toFile().getName());
-    }
-
-    private boolean fileFitsPattern(Path path) {
+    protected boolean processFile(Path path) {
         try {
             return Files.readAllLines(path)
                     .stream()
                     .anyMatch(line -> line.contains(pattern));
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
     }
