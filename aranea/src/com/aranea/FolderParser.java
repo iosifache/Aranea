@@ -13,7 +13,7 @@ public abstract class FolderParser {
 
     protected abstract boolean processFile(Path path);
 
-    public abstract void parse() throws CannotOpenException;
+    public abstract void parse() throws AraneaException;
 
     public Path getFolderPath() {
         return folderPath;
