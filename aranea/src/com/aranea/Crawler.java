@@ -289,6 +289,24 @@ public class Crawler extends Thread {
         }
     }
 
+    private void exampleOfUse() throws AraneaException {
+        int thNumber = 4;
+        URLQueue urlQ = URLQueue.getInstance(20);
+        URL url2;
+
+        try {
+            url2 = new URL("https://webscraper.io/");
+        } catch (MalformedURLException e) {
+            throw  new AraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Malformed URL");
+        }
+        urlQ.add(url2);
+
+        for (int i=0; i<thNumber; i++){
+            Crawler crawler = new Crawler("./newDir",n);
+            crawler.start();
+        }
+    }
+
     //exceptions
     public class ConnectionAraneaException extends AraneaException {
         public ConnectionAraneaException(AraneaLogger.AraneaLoggerLevels level) {
@@ -334,17 +352,3 @@ public class Crawler extends Thread {
 
 }
 
-//how to use it
-//    private void ExampleOfUse() throws  AraneaException {
-//        int n =4; //thread numbers
-//
-//    URLQueue urlQue = URLQueue.getInstance(20);
-//
-//    URL url2 = new URL("https://webscraper.io/");
-//    urlQue.add(url2);
-//
-//    for (int i=0; i<n;i++){
-//        Crawler crawler = new Crawler("./newDir",n);
-//        crawler.start();
-//    }
-//}
