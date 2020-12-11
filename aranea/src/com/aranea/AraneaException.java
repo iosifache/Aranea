@@ -16,6 +16,10 @@ public class AraneaException extends Exception {
     logger.log(this.level, this.getMessage());
   }
 
+  public AraneaLoggerLevels getLevel(){
+    return this.level;
+  }
+
   private void exemplifyUsage() {
 
     try {
