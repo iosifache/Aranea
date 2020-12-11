@@ -1,87 +1,135 @@
-package main.java.arena;
 
+package com.aranea;
+
+import com.aranea.AraneaLogger.AraneaLoggerLevels;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Sieve {
 
-    private List<String> ignoredPages;
-    private List<String> allowedExtensions;
-    private String pattern;
-    private Path pathToRobotsFile;
-    private long maxSize;
+  private static Sieve sieve = null;
+  private List<String> allowedExtensions;
+  private List<String> ignoredPages = new ArrayList<>();
+  private String pattern;
+  private final int maxSize;
 
-    public Sieve(String[] allowedExtensions, String pattern, long maxSize, String pathToRobotsFile) {
-        this.allowedExtensions = Arrays.asList(allowedExtensions);
-        this.pattern = pattern;
-        this.pathToRobotsFile = Paths.get(pathToRobotsFile);
-        this.maxSize = maxSize;
-        ignoredPages = new ArrayList<>();
+  private Sieve(String[] allowedExtensions, int maxSize, String pattern) {
+    this.allowedExtensions = Arrays.asList(allowedExtensions);
+    this.maxSize = maxSize;
+    this.pattern = pattern;
+  }
+
+  public static Sieve getInstance(String[] allowedExtensions, int maxSize, String pattern) {
+    if (sieve == null) sieve = new Sieve(allowedExtensions, maxSize, pattern);
+    return sieve;
+  }
+
+  public void addIgnoredPages(String[] pages) {
+    this.ignoredPages.addAll(Arrays.asList(pages));
+  }
+
+  public boolean checkURL(String url) throws FailedRequestException {
+
+    boolean isInRobots = this.ignoredPages.contains(url);
+    if (isInRobots) return false;
+
+    boolean hasRightExtension =
+        this.getFileExtension(url)
+            .filter(extension -> this.allowedExtensions.contains(extension))
+            .isPresent();
+    if (!hasRightExtension) return false;
+
+    return this.getFileSize(url) <= this.maxSize;
+  }
+
+  public boolean checkContent(FileInputStream file) throws FailedFileReadException {
+
+    Charset charset = StandardCharsets.UTF_8;
+    try {
+      byte[] bytes = file.readAllBytes();
+      String fileContent = new String(bytes, charset);
+
+      Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
+      Matcher matcher = pattern.matcher(fileContent);
+      return matcher.find();
+    } catch (IOException e) {
+      throw new FailedFileReadException();
+    }
+  }
+
+  private Optional<String> getFileExtension(String filename) {
+    return Optional.ofNullable(filename)
+        .filter(f -> f.contains("."))
+        .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+  }
+
+  private int getFileSize(String url) throws FailedRequestException {
+
+    URL urlObject = null;
+    URLConnection conn = null;
+
+    try {
+      urlObject = new URL(url);
+      conn = urlObject.openConnection();
+      if (conn instanceof HttpURLConnection) {
+        ((HttpURLConnection) conn).setRequestMethod("HEAD");
+      }
+      conn.getInputStream();
+      return conn.getContentLength();
+    } catch (IOException e) {
+      throw new FailedRequestException();
+    } finally {
+      if (conn instanceof HttpURLConnection) {
+        ((HttpURLConnection) conn).disconnect();
+      }
+    }
+  }
+
+  private void exemplifyUsage() {
+
+    String extensions[] = {"html", "css", "js"};
+    String ignoredPages[] = {"http://www.columbia.edu/~fdc/contact.html"};
+
+    Sieve sieve = Sieve.getInstance(extensions, 100000, "Content");
+    sieve.addIgnoredPages(ignoredPages);
+    try {
+      boolean validURL = sieve.checkURL("http://www.columbia.edu/~fdc/index.html");
+    } catch (FailedRequestException e) {
+      // Log exception
     }
 
-    private void addIgnoredPages(String pageToIgnore) {
-        ignoredPages.add(pageToIgnore);
+    try {
+      File file = new File("index.html");
+      boolean validContent = sieve.checkContent(new FileInputStream(file));
+    } catch (FileNotFoundException e) {
+      // Log exception
+    } catch (FailedFileReadException e) {
+      // Log exception
     }
+  }
 
-    private boolean checkURL(String url) {
-        File fileToCheck = Paths.get(url).toFile();
-        String fileName = fileToCheck.getName();
-
-        boolean fileHasRightExtension = fileHasRightExtension(fileName);
-
-        boolean fileHasToBeIgnored = fileHasToBeIgnored(fileName);
-
-        boolean fileHasAllowedSize = fileToCheck.length() < maxSize;
-
-        return fileHasAllowedSize && fileHasRightExtension && !fileHasToBeIgnored;
+  private class FailedRequestException extends AraneaException {
+    public FailedRequestException() {
+      super(AraneaLoggerLevels.ERROR, "Failed creation of a request to target website.");
     }
+  }
 
-    private boolean fileHasRightExtension(String fileName) {
-        return getFileExtension(fileName).filter(extension -> allowedExtensions.contains(extension))
-                .isPresent();
+  private class FailedFileReadException extends AraneaException {
+    public FailedFileReadException() {
+      super(AraneaLoggerLevels.ERROR, "Failed read from target file.");
     }
-
-    private boolean fileHasToBeIgnored(String fileName) {
-        try {
-            return Files.readAllLines(pathToRobotsFile)
-                    .stream()
-                    .anyMatch(line -> line.contains(fileName));
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    private Optional<String> getFileExtension(String filename) {
-        return Optional.ofNullable(filename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
-    }
-
-    private boolean checkContent(FileInputStream file) {
-        String path;
-        try {
-            Field field = file.getClass().getDeclaredField("path");
-            field.setAccessible(true);
-            path = (String) field.get(file);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            System.out.println("There was a problem while checking the content!");
-            return false;
-        }
-        try {
-            return Files.readAllLines(Paths.get(path))
-                    .stream()
-                    .anyMatch(line -> line.contains(pattern));
-        } catch (IOException e) {
-            return false;
-        }
-    }
+  }
 }
