@@ -1,4 +1,3 @@
-
 package com.aranea;
 
 import com.aranea.AraneaLogger.AraneaLoggerLevels;
@@ -132,4 +131,5 @@ public class Sieve {
       super(AraneaLoggerLevels.ERROR, "Failed read from target file.");
     }
   }
+
 }
