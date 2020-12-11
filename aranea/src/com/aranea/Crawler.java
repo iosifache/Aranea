@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class Crawler extends Thread {
 
-    private static final String USER_AGENT = "Aranea";
+    private static final String USER_AGENT = "AraneaBot";
     public static int counter = 0;
     private static Pattern relativePattern;
     private static Pattern pattern;
