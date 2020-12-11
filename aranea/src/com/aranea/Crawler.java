@@ -11,24 +11,23 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class Crawler extends Thread {
 
     private static final String USER_AGENT = "Aranea";
+    public static int counter = 0;
     private static Pattern relativePattern;
     private static Pattern pattern;
     private static String finalDirectory;
-    private static Set<String> untouchedUrl;
     private final AraneaLogger logger;
     private final URLQueue urlQueue;
 
-    public Crawler(String saveDirectory) {
+
+    public Crawler(String saveDirectory, int ThreadNumbers) {
 
         finalDirectory = saveDirectory;
-        urlQueue = URLQueue.getInstance();
+        urlQueue = URLQueue.getInstance(20);
         logger = AraneaLogger.getInstance();
-        untouchedUrl = new HashSet<String>();
-
+        counter = ThreadNumbers;
 
         String urlRegex = "((https?|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
         pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
@@ -37,7 +36,7 @@ public class Crawler extends Thread {
     }
 
     //finds urls contained in the parsed response
-    private static List<URL> extractUrls(StringBuffer urlResponse, URL scrapUrl) throws AraneaException {
+    private static List<URL> extractUrls(StringBuffer urlResponse, URL scrapUrl, Set<String> untouchedUrl) throws AraneaException {
         URL strUrl = null;
         String output;
         String finalString;
@@ -88,20 +87,37 @@ public class Crawler extends Thread {
     }
 
     public void run() {
-        boolean check = true;
-        try {
-            // Displaying the thread that is running
-            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Thread running is: " + Thread.currentThread().getId());
-        } catch (Exception e) {
-            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Error " + e.getMessage());
-        }
+        boolean check, previousCheck;
 
-        while (check) {
+        check = true;
+
+        while (counter > 0) {
+            previousCheck = check;
             try {
                 check = downloadNextUrl();
-                System.out.println("check is: " + check);
             } catch (AraneaException e) {
-                logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Error " + e.getMessage());
+                if (e.getLevel() == AraneaLogger.AraneaLoggerLevels.WARNING) {
+                    check = true;
+                } else {
+                    try {
+                        throw e;
+                    } catch (AraneaException ex) {
+                        //logger.log(AraneaLogger.AraneaLoggerLevels.ERROR, "Error " + ex.getMessage());
+                    }
+                }
+                //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Error " + e.getMessage());
+            }
+
+            if (!previousCheck && check) {
+                synchronized (this) {
+                    counter++;
+                }
+            }
+
+            if (!check && previousCheck) {
+                synchronized (this) {
+                    counter--;
+                }
             }
         }
     }
@@ -115,17 +131,19 @@ public class Crawler extends Thread {
         String replacedResponse;
         HttpURLConnection con;
         List<URL> extractedUrls;
+        Set<String> untouchedUrl;
+        untouchedUrl = new HashSet<String>();
 
         try {
             scrapUrl = urlQueue.remove();
-            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Next URL to scrap is: " + scrapUrl.toString());
+            //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Next URL to scrap is: " + scrapUrl.toString());
         } catch (AraneaException e) {
             throw new RemoveFailAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
         }
 
         //queue is empty
         if (scrapUrl == null) {
-            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Queue is empty");
+            //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Queue is empty");
             return false;
         }
         try {
@@ -156,7 +174,7 @@ public class Crawler extends Thread {
                 in.close();
 
                 //extract a list of urls from the current page
-                extractedUrls = extractUrls(response, scrapUrl);
+                extractedUrls = extractUrls(response, scrapUrl, untouchedUrl);
 
                 //call Sieve Here
 
@@ -164,7 +182,7 @@ public class Crawler extends Thread {
                 savePath = getSavePath(scrapUrl);
 
                 //convert html links to relative paths
-                replacedResponse = replaceToLocal(response, extractedUrls);
+                replacedResponse = replaceToLocal(response, extractedUrls, untouchedUrl);
 
                 //save the modify page to the save path
                 saveResponse(replacedResponse, savePath);
@@ -227,7 +245,7 @@ public class Crawler extends Thread {
     }
 
     //is supposed to replace URL with local reference - doesn't work as supposed
-    private String replaceToLocal(StringBuffer response, List<URL> LoL) {
+    private String replaceToLocal(StringBuffer response, List<URL> LoL, Set<String> untouchedUrl) {
         //LoL - List of Links :D
         int intIndex;
         String relPath;
@@ -249,7 +267,6 @@ public class Crawler extends Thread {
 
         while (iterator.hasNext()) {
             String element = iterator.next();
-            System.out.println("element is: " + element);
             String replacementString = "." + element;
             replaced = replaced.replaceAll(element, replacementString);
             iterator.remove();
@@ -319,17 +336,15 @@ public class Crawler extends Thread {
 
 //how to use it
 //    private void ExampleOfUse() throws  AraneaException {
+//        int n =4; //thread numbers
+//
+//    URLQueue urlQue = URLQueue.getInstance(20);
+//
 //    URL url2 = new URL("https://webscraper.io/");
-//
-//    URLQueue urlQue = URLQueue.getInstance();
-//
 //    urlQue.add(url2);
 //
-//    int n =4;
-//
 //    for (int i=0; i<n;i++){
-//        Crawler crawler = new Crawler("./newDir");
+//        Crawler crawler = new Crawler("./newDir",n);
 //        crawler.start();
 //    }
-//    urlQue.PrintUrlQueue();
 //}
