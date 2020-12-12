@@ -302,7 +302,7 @@ public class Crawler extends Thread {
         urlQ.add(url2);
 
         for (int i=0; i<thNumber; i++){
-            Crawler crawler = new Crawler("./newDir",n);
+            Crawler crawler = new Crawler("./newDir",1);
             crawler.start();
         }
     }

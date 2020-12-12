@@ -34,7 +34,7 @@ public class Aranea {
      */
     static Aranea araneaInstance = null;
     private Crawler[] crawlerArray;
-    private URLQueue urlQueue = null;
+    private static URLQueue urlQueue = null;
     static private Sieve sieve = null;
     private ExtensionFinder extensionFinder = null;
     private PatternFinder patternFinder = null;
@@ -85,16 +85,24 @@ public class Aranea {
      * assign private member sieve to corresponding
      * Singlenton class Sieve
      */
-    static private void initSieve() {
+    static private void initSieve() throws AraneaException {
 
-        Sieve sieve = Sieve.getInstance();
+         sieve = Sieve.getInstance(araneaConfiguration.getAllowedExtensions(),
+                araneaConfiguration.getAllowedMaxSize(),araneaConfiguration.getAllowedPattern());
 
         //check if robots file si allowed
-        if (!araneaConfiguration.isSkipRobotsdottxtFiles())
-            sieve.addFileIgnoredPages("robots.txt");
+        if (!araneaConfiguration.isSkipRobotsdottxtFiles()) {
 
-        //add extension form Configuration to Sieve
-        sieve.addAllowedExtension(araneaConfiguration.getAllowedExtensions());
+            try {
+                String [] links = readFileContent("robots.txt").toArray(new String[0]);
+                sieve.addIgnoredPages(links);
+            } catch (FileNotFoundException e) {
+                throw new AraneaException(AraneaLogger.AraneaLoggerLevels.WARNING,
+                        "File robots.txt not found");
+            }
+        }
+
+
 
     }
 
@@ -103,8 +111,8 @@ public class Aranea {
      * Singlenton class URLQueue
      */
     private void initUrlQueue() {
-
-        urlQueue = URLQueue.getInstance();
+    //nu stiu ce param trebuie sa ii dau
+        urlQueue = URLQueue.getInstance(10);
     }
 
 
@@ -115,7 +123,7 @@ public class Aranea {
      * @return an String Array
      * @Throw an error if file not found
      */
-    private List<String> readFileContent(String file) throws FileNotFoundException {
+    static private List<String> readFileContent(String file) throws FileNotFoundException {
 
         List<String> lines = new ArrayList<>();
         try {
@@ -188,7 +196,11 @@ public class Aranea {
 
         ExtensionFinder extFinder =
                 new ExtensionFinder(araneaConfiguration.getDownloadDir(), extension);
-
+        try {
+            extFinder.parse();
+        } catch (AraneaException e) {
+            e.logException(araneaLogger);
+        }
     }
 
     /**
@@ -197,10 +209,16 @@ public class Aranea {
      * @param pattern keyword
      */
 
-    private void searchPattern(String pattern) {
+    private void searchPattern(String pattern)  {
 
         patternFinder =
                 new PatternFinder(araneaConfiguration.getDownloadDir(), pattern);
+        try {
+            patternFinder.parse();
+        } catch (AraneaException e) {
+            e.logException(araneaLogger);
+        }
+
 
     }
 
@@ -212,37 +230,63 @@ public class Aranea {
      * @throws FileNotFoundException if file does not exists
      * @throws MalformedURLException if url can be initialised from string
      */
-    private void startCrawling(String file)
-            throws FileNotFoundException, MalformedURLException {
+    private static void startCrawling(String file)
+            throws FileNotFoundException, MalformedURLException, Sieve.FailedRequestException {
 
-        String[] links = null;
-        links = readFileContent(file).toArray(new String[0]);
-        int queueSize = 0;
-        for (String link : links) {
 
-            if (!sieve.checkIgnoredPages(link)) {
+        List<String> list = readFileContent(file);
+        int queueSize =0;
+        for (String link:list) {
 
-                try {
-                    araneaLogger.log(AraneaLogger.AraneaLoggerLevels.INFO, "LINK:'" + link + "' added to Queue");
+            System.out.println(link);
+            try {
+                if(sieve.checkURL(link) == true) {
+
                     urlQueue.add(new URL(link));
-                    queueSize += 1;
-                } catch (Exception e) {
-                    araneaLogger.log(AraneaLogger.AraneaLoggerLevels.WARNING, "LINK:'" + link + "' couldn't be added to Queue");
 
+                    System.out.println("add:" + link);
                 }
-
+            }catch (Sieve.FailedRequestException e) {
+                e.logException(araneaLogger);
             }
+
         }
 
-        /**
-         *Crawlers JOB START HERE
-         *@queueSize = exact number of URL in QUEUE
-         * TO DO: set dir_downloads;
-         * @TODO: Va fi implemenat dupa ce finalizarea clasei crawler
-         */
+        //sieve.checkURL("http://www.columbia.edu/~fdc/index.html");
+//
+//        /**
+//         *Crawlers JOB START HERE
+//         *@queueSize = exact number of URL in QUEUE
+//         * TO DO: set dir_downloads;
+//         *
+//         */
+//
+            Crawler c= new Crawler(araneaConfiguration.getDownloadDir(),
+                    araneaConfiguration.getMaxThreads());
 
+            c.start();
+
+        System.out.println("done");
     }
 
+
+    private List<String> parseCommand(String[] commands) {
+
+       String fullCommand = new String();
+        for(int i=1;i<commands.length;i++) {
+            fullCommand=commands[i];
+            if(i+1 < commands.length)
+                fullCommand=fullCommand+" ";
+        }
+
+        List<String> listCommand = new ArrayList<String>();
+        for(String command: fullCommand.split("'")) {
+
+            listCommand.add(command);
+        }
+        //System.out.println(listCommand);
+        return listCommand;
+    }
 
     /**
      * Giving a specific array string contains keyword
@@ -255,12 +299,16 @@ public class Aranea {
 
         try {
 
-            if (commands != null)
+            if (commands != null) {
+
+                String[] parseCommands = parseCommand(commands).toArray(new String[0]);
+
+
                 switch (commands[0]) {
 
                     //extension finder
                     case "list":
-                        for (int i = 1; i < commands.length; i++) {
+                        for (int i = 0; i < parseCommands.length; i++) {
                             System.out.println("List exention " + commands[i]);
                             listExtension(commands[i]);
                         }
@@ -268,13 +316,19 @@ public class Aranea {
 
                     //generete sitemap
                     case "sitemap":
-                        sitemapGenerator = new SitemapGenerator(araneaConfiguration.getDownloadDir(), "sitemap.txt");
+                        sitemapGenerator = new SitemapGenerator(araneaConfiguration.getDownloadDir(), "conf2.txt");
+                        try {
+                            sitemapGenerator.parse();
+                        } catch (AraneaException e) {
+                            e.logException(araneaLogger);
+                        }
+
                         break;
 
                     //download url from files
                     case "get":
-                        for (int i = 1; i < commands.length; i++) {
-                            startCrawling(commands[i]);
+                        for (int i = 0; i < parseCommands.length; i++) {
+                            startCrawling(parseCommands[i]);
                         }
                         break;
 
@@ -285,8 +339,12 @@ public class Aranea {
 
                     //pattern finder
                     case "search":
-                        for (int i = 1; i < commands.length; i++) {
-                            searchPattern(commands[i]);
+
+                        for (int i = 0; i < parseCommands.length; i++) {
+
+                            System.out.println(parseCommands[i]);
+                            searchPattern(parseCommands[i]);
+
                         }
                         break;
 
@@ -302,6 +360,7 @@ public class Aranea {
                             System.out.println("Aranea option not found");
                         break;
                 }
+            }
             else {
                 System.out.println("use --help for more information");
             }
@@ -309,6 +368,7 @@ public class Aranea {
 
             araneaLogger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Invalid or incomplete command");
             System.out.println("Invalid command");
+            e.getStackTrace();
         }
     }
 
@@ -328,11 +388,12 @@ public class Aranea {
         //init of Logger
         try {
             initLogger();
+            initSieve();
         } catch (AraneaException e) {
             e.logException(araneaLogger);
         }
 
-        initSieve();
+
         initUrlQueue();
 
         try {

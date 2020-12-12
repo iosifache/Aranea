@@ -42,16 +42,17 @@ public class Sieve {
 
   public boolean checkURL(String url) throws FailedRequestException {
 
-    boolean isInRobots = this.ignoredPages.contains(url);
-    if (isInRobots) return false;
-
-    boolean hasRightExtension =
-        this.getFileExtension(url)
-            .filter(extension -> this.allowedExtensions.contains(extension))
-            .isPresent();
-    if (!hasRightExtension) return false;
-
-    return this.getFileSize(url) <= this.maxSize;
+return true;
+//    boolean isInRobots = this.ignoredPages.contains(url);
+//    if (isInRobots) return false;
+//
+//    boolean hasRightExtension =
+//        this.getFileExtension(url)
+//            .filter(extension -> this.allowedExtensions.contains(extension))
+//            .isPresent();
+//    if (!hasRightExtension) return false;
+//
+//    return this.getFileSize(url) <= this.maxSize;
   }
 
   public boolean checkContent(FileInputStream file) throws FailedFileReadException {
@@ -104,11 +105,11 @@ public class Sieve {
 
     Sieve sieve = Sieve.getInstance(extensions, 100000, "Content");
     sieve.addIgnoredPages(ignoredPages);
-    try {
+    /*try {
       boolean validURL = sieve.checkURL("http://www.columbia.edu/~fdc/index.html");
     } catch (FailedRequestException e) {
       // Log exception
-    }
+    }*/
 
     try {
       File file = new File("index.html");
@@ -120,7 +121,7 @@ public class Sieve {
     }
   }
 
-  private class FailedRequestException extends AraneaException {
+  class FailedRequestException extends AraneaException {
     public FailedRequestException() {
       super(AraneaLoggerLevels.ERROR, "Failed creation of a request to target website.");
     }
