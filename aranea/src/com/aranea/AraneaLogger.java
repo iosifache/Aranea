@@ -5,10 +5,12 @@ import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Filter;
 import java.util.logging.Formatter;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.io.IOException;
+import java.util.logging.StreamHandler;
 
 public class AraneaLogger {
 
@@ -17,10 +19,20 @@ public class AraneaLogger {
   private static Logger logger = null;
   private static Level minLevel = Level.INFO;
 
-  private AraneaLogger() {}
+  private AraneaLogger() {
+    logger = Logger.getLogger("com.aranea.AraneaLogger");
+    StreamHandler handler = new StreamHandler(System.out, new AraneaLoggerFormatter());
+    handler.setFilter(new AraneaLoggerFilter());
+    logger.addHandler(handler);
+  }
 
   public void setOutputFile(String filename) throws LoggerOpenFileException {
     logger = Logger.getLogger("com.aranea.AraneaLogger");
+
+    Handler handlers[] = logger.getHandlers();
+    for (Handler handler : handlers) {
+      logger.removeHandler(handler);
+    }
     logger.setUseParentHandlers(false);
 
     try {
@@ -108,9 +120,10 @@ public class AraneaLogger {
 
       // Get instance, set output file and minimum level of an exception to log it and log a message
       AraneaLogger logger = AraneaLogger.getInstance();
+      logger.log(AraneaLoggerLevels.INFO, "Information example that wil be logged on screen");
       logger.setOutputFile("log.txt");
       logger.setMinLevel(AraneaLoggerLevels.WARNING);
-      logger.log(AraneaLoggerLevels.INFO, "Information example");
+      logger.log(AraneaLoggerLevels.INFO, "Information example that will not be logged");
 
       // Get the instance again and log a message
       AraneaLogger another_logger = AraneaLogger.getInstance();
