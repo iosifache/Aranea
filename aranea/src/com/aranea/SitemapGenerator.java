@@ -59,8 +59,16 @@ public class SitemapGenerator extends FolderParser {
             throw new CannotWriteException();
         }
         systemMap.forEach((dirName, dirContent) -> {
-            printDirName(dirName);
-            printDirFiles(dirContent);
+            try {
+                printDirName(dirName);
+            } catch (CannotWriteException e) {
+                e.printStackTrace();
+            }
+            try {
+                printDirFiles(dirContent);
+            } catch (CannotWriteException e) {
+                e.printStackTrace();
+            }
         });
     }
 
@@ -79,7 +87,11 @@ public class SitemapGenerator extends FolderParser {
             try {
                 Files.write(outputFile, formattedFileName, StandardOpenOption.APPEND);
             } catch (Exception e) {
-                throw new CannotWriteException();
+                try {
+                    throw new CannotWriteException();
+                } catch (CannotWriteException cannotWriteException) {
+                    cannotWriteException.printStackTrace();
+                }
             }
         });
     }
