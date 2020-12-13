@@ -23,6 +23,7 @@ public class AraneaLogger {
     logger = Logger.getLogger("com.aranea.AraneaLogger");
     StreamHandler handler = new StreamHandler(System.out, new AraneaLoggerFormatter());
     handler.setFilter(new AraneaLoggerFilter());
+    logger.setUseParentHandlers(false);
     logger.addHandler(handler);
   }
 
@@ -33,7 +34,6 @@ public class AraneaLogger {
     for (Handler handler : handlers) {
       logger.removeHandler(handler);
     }
-    logger.setUseParentHandlers(false);
 
     try {
       outputFile = new FileHandler(filename, true);
