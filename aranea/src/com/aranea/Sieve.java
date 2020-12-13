@@ -42,17 +42,19 @@ public class Sieve {
 
   public boolean checkURL(String url) throws FailedRequestException {
 
-return true;
-//    boolean isInRobots = this.ignoredPages.contains(url);
-//    if (isInRobots) return false;
-//
-//    boolean hasRightExtension =
-//        this.getFileExtension(url)
-//            .filter(extension -> this.allowedExtensions.contains(extension))
-//            .isPresent();
-//    if (!hasRightExtension) return false;
-//
-//    return this.getFileSize(url) <= this.maxSize;
+    boolean isInRobots = this.ignoredPages.contains(url);
+    if (isInRobots) return false;
+
+    if (!this.allowedExtensions.contains("*")){
+      boolean hasRightExtension =
+          this.getFileExtension(url)
+              .filter(extension -> this.allowedExtensions.contains(extension))
+              .isPresent();
+      if (!hasRightExtension) return false;
+    }
+
+    return this.getFileSize(url) <= this.maxSize;
+
   }
 
   public boolean checkContent(FileInputStream file) throws FailedFileReadException {

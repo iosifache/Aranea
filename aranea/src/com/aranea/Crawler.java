@@ -13,21 +13,24 @@ import java.util.regex.Pattern;
 
 public class Crawler extends Thread {
 
-    private static final String USER_AGENT = "AraneaBot";
     public static int counter = 0;
+    private String userAgent;
     private static Pattern relativePattern;
     private static Pattern pattern;
     private static String finalDirectory;
     private final AraneaLogger logger;
     private final URLQueue urlQueue;
+    private Sieve sieveInstance;
 
 
-    public Crawler(String saveDirectory, int ThreadNumbers) {
+    public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers) {
 
         finalDirectory = saveDirectory;
         urlQueue = URLQueue.getInstance(20);
         logger = AraneaLogger.getInstance();
         counter = ThreadNumbers;
+        userAgent = usedUserAgent;
+        sieveInstance = usedSieveInstance;
 
         String urlRegex = "((https?|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
         pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
@@ -146,6 +149,10 @@ public class Crawler extends Thread {
             //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Queue is empty");
             return false;
         }
+
+        if (!sieveInstance.checkURL(scrapUrl.toString()))
+            return true;
+
         try {
             con = (HttpURLConnection) scrapUrl.openConnection();
             con.setRequestMethod("GET");
@@ -153,7 +160,7 @@ public class Crawler extends Thread {
             throw new ConnectionAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
         }
 
-        con.setRequestProperty("User-Agent", USER_AGENT);
+        con.setRequestProperty("User-Agent", userAgent);
 
         try {
             responseCode = con.getResponseCode();
@@ -175,8 +182,6 @@ public class Crawler extends Thread {
 
                 //extract a list of urls from the current page
                 extractedUrls = extractUrls(response, scrapUrl, untouchedUrl);
-
-                //call Sieve Here
 
                 //create directories and get the save path
                 savePath = getSavePath(scrapUrl);
@@ -205,10 +210,10 @@ public class Crawler extends Thread {
     }
 
     //generates and creates the directories where the content will be saved
-    private String getSavePath(URL url) throws AraneaException {
+    public static String getSavePath(URL url) throws AraneaException {
 
         String hostName;
-        String finalPath = finalDirectory + "/";
+        String finalPath = finalDirectory;
         String path;
         String[] splitted;
         Path checkPath;
@@ -228,7 +233,7 @@ public class Crawler extends Thread {
         }
 
         if (path.equals("/")) {
-            path = "/index.html";
+            path = "\\index.html";
         }
 
         finalPath += hostName;
@@ -267,7 +272,7 @@ public class Crawler extends Thread {
 
         while (iterator.hasNext()) {
             String element = iterator.next();
-            String replacementString = "." + element;
+            String replacementString = element;
             replaced = replaced.replaceAll(element, replacementString);
             iterator.remove();
         }
@@ -294,6 +299,10 @@ public class Crawler extends Thread {
         URLQueue urlQ = URLQueue.getInstance(20);
         URL url2;
 
+        // Init sieve
+        String extensions[] = {"*"};
+        Sieve sieve = Sieve.getInstance(extensions, 1000000, "*");
+
         try {
             url2 = new URL("https://webscraper.io/");
         } catch (MalformedURLException e) {
@@ -302,7 +311,7 @@ public class Crawler extends Thread {
         urlQ.add(url2);
 
         for (int i=0; i<thNumber; i++){
-            Crawler crawler = new Crawler("./newDir",1);
+            Crawler crawler = new Crawler("./newDir","CustomUserAgent", sieve,1);
             crawler.start();
         }
     }
@@ -314,7 +323,7 @@ public class Crawler extends Thread {
         }
     }
 
-    public class CreateDirecoryAraneaException extends AraneaException {
+    public static class CreateDirecoryAraneaException extends AraneaException {
         public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Error creating the directory");
         }

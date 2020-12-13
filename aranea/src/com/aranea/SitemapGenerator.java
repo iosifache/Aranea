@@ -52,11 +52,12 @@ public class SitemapGenerator extends FolderParser {
     }
 
     private void printToOutputFile() throws CannotWriteException {
-        byte[] desiredMap = "The desired map".getBytes();
-        try {
-            Files.write(outputFile, desiredMap, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (Exception e) {
-            throw new CannotWriteException();
+        byte[] desiredMap = {};
+        try{
+            Files.createFile(outputFile);
+        }
+        catch (Exception e){
+            ;
         }
         systemMap.forEach((dirName, dirContent) -> {
             try {
