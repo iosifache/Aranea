@@ -130,10 +130,6 @@ public class Aranea {
     }
   }
 
-  public void helpUser() {
-    System.out.println("Aranea Help here..");
-  }
-
   /**
    * Display files name with a specific extension from download Dir
    *
@@ -282,7 +278,12 @@ public class Aranea {
         case "list" -> listExtension(commands[1]);
         case "search" -> searchPattern(commands[1]);
         case "interactive" -> interactiveMode();
-        default -> helpUser();
+        default -> {
+          if (commands.length == 2 && commands[1] != null)
+            AraneaHelper.requestCommandHelp(commands[1]);
+          else
+            AraneaHelper.requestGenericHelp();
+        }
       }
 
     } catch (Exception e) {
@@ -303,7 +304,7 @@ public class Aranea {
     try {
       if (commands != null && commands.length != 0) executeCommand(commands);
       else {
-        helpUser();
+        AraneaHelper.requestGenericHelp();
       }
     } catch (AraneaException e) {
       e.logException(araneaLogger);
