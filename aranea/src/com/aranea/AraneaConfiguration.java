@@ -3,9 +3,9 @@ package com.aranea;
 import com.aranea.AraneaLogger.AraneaLoggerLevels;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Struct;
 import java.util.Properties;
 
+/* Class for working with configuration files */
 public class AraneaConfiguration {
 
   private Properties props = null;
@@ -20,6 +20,13 @@ public class AraneaConfiguration {
   private String allowedPattern = "";
   private boolean skipRobotsdottxtFiles = false;
 
+  /**
+   * Constructor
+   *
+   * @param filename Filename of the configuration file
+   * @throws ConfigurationOpenFileException If the configuration file cannot be opened
+   * @throws ConfigurationMissingKeysException If the configuration file misses mandatory keys
+   */
   public AraneaConfiguration(String filename)
       throws ConfigurationOpenFileException, ConfigurationMissingKeysException {
     this.props = new Properties();
@@ -46,54 +53,108 @@ public class AraneaConfiguration {
     this.allowedPattern = this.props.getProperty("allowed_pattern", "");
     this.skipRobotsdottxtFiles =
         Boolean.parseBoolean(this.props.getProperty("skip_robotsdottxt_files", "true"));
+
+    AraneaLogger.getInstance().log(AraneaLoggerLevels.INFO, "Configuration file imported");
   }
 
+  /**
+   * Get download directory
+   *
+   * @return Download directory
+   */
   public String getDownloadDir() {
     return this.downloadDir;
   }
 
+  /**
+   * Get log file
+   *
+   * @return Log file
+   */
   public String getLogFile() {
     return this.logFile;
   }
 
+  /**
+   * Get minimum level for an event to be logged
+   *
+   * @return Minimum level for an event to be logged
+   */
   public AraneaLoggerLevels getLogLevel() {
     return this.logLevel;
   }
 
+  /**
+   * Check if the sitemap needs to be generated
+   *
+   * @return Boolean indicating if the sitemap needs to be generated
+   */
   public boolean isSitemapGenerated() {
     return this.isSitemapGenerated;
   }
 
+  /**
+   * Get the maximum number of threads
+   *
+   * @return Maximum number of threads
+   */
   public int getMaxThreads() {
     return this.maxThreads;
   }
 
+  /**
+   * Get delay between two consecutive requests
+   *
+   * @return Delay between two consecutive requests
+   */
   public int getDelay() {
     return this.delay;
   }
 
+  /**
+   * Get allowed extensions for downloaded files
+   *
+   * @return Allowed extensions for downloaded files
+   */
   public String[] getAllowedExtensions() {
     return allowedExtensions;
   }
 
+  /**
+   * Get maximum size of a file to be downloaded
+   *
+   * @return Maximum size of a file to be downloaded
+   */
   public int getAllowedMaxSize() {
     return this.allowedMaxSize;
   }
 
+  /**
+   * Get mandatory pattern to be matched in a file to be downloaded
+   *
+   * @return Mandatory pattern to be matched in a file to be downloaded
+   */
   public String getAllowedPattern() {
     return this.allowedPattern;
   }
 
+  /**
+   * Check if files mentioned in robots.txt will be ignored
+   *
+   * @return Boolean indicating if files mentioned in robots.txt will be ignored
+   */
   public boolean isSkipRobotsdottxtFiles() {
     return this.skipRobotsdottxtFiles;
   }
 
+  /* Exception thrown if configuration file cannot be opened */
   public static class ConfigurationOpenFileException extends AraneaException {
     public ConfigurationOpenFileException() {
       super(AraneaLoggerLevels.ERROR, "The configuration file could not be opened.");
     }
   }
 
+  /* Exception thrown if configuration file misses mandatory keys */
   static class ConfigurationMissingKeysException extends AraneaException {
     public ConfigurationMissingKeysException() {
       super(
@@ -101,7 +162,8 @@ public class AraneaConfiguration {
     }
   }
 
-  private void exemplifyUsage(){
+  /* Function to exemplify the usage */
+  private void exemplifyUsage() {
     // Get logger instance and set output file
     AraneaLogger logger = AraneaLogger.getInstance();
     try {
@@ -123,5 +185,4 @@ public class AraneaConfiguration {
       e.logException(logger);
     }
   }
-
 }
