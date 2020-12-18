@@ -1,5 +1,10 @@
 package com.aranea;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -8,13 +13,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class Crawler extends Thread {
 
     public static int counter = 0;
     private String userAgent;
+    private long sleepTime;
     private static Pattern relativePattern;
     private static Pattern pattern;
     private static String finalDirectory;
@@ -22,19 +30,23 @@ public class Crawler extends Thread {
     private final URLQueue urlQueue;
     private Sieve sieveInstance;
 
+    //test variable
+    public static int TestCounter;
 
-    public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers) {
+    public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers, long initializeSleep) {
 
         finalDirectory = saveDirectory;
         urlQueue = URLQueue.getInstance(20);
         logger = AraneaLogger.getInstance();
         counter = ThreadNumbers;
         userAgent = usedUserAgent;
+        sleepTime = initializeSleep;
         sieveInstance = usedSieveInstance;
+        TestCounter = 0;
 
         String urlRegex = "((https?|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
         pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
-        String urlRelative = "href=\"(.*?)\"";
+        String urlRelative = "(href=|src=)\"(.*?)\"";
         relativePattern = Pattern.compile(urlRelative, Pattern.CASE_INSENSITIVE);
     }
 
@@ -43,10 +55,11 @@ public class Crawler extends Thread {
         URL strUrl = null;
         String output;
         String finalString;
+        String[] splitted;
 
         List<URL> containedUrls = new ArrayList<URL>();
         Matcher urlMatcher = pattern.matcher(urlResponse);
-        Matcher urlRelative = relativePattern.matcher(urlResponse);
+
 
         while (urlMatcher.find()) {
             output = urlResponse.substring(urlMatcher.start(0),
@@ -60,32 +73,39 @@ public class Crawler extends Thread {
 
             containedUrls.add(strUrl);
         }
-
-        untouchedUrl.clear();
+        Matcher urlRelative = relativePattern.matcher(urlResponse);
         while (urlRelative.find()) {
-            output = urlResponse.substring(urlRelative.start(0),
-                    urlRelative.end(0));
 
-            output = output.substring(6, output.length() - 1);
+            output = urlRelative.group(0);
+            splitted = output.split("\"");
 
-            //it the string is relative path we concatenate with the url
-            if (!output.startsWith("#")) {
-                if (!output.startsWith("https://")) {
-                    finalString = scrapUrl.toString() + output;
-                    if (output.length() > 2) {
-                        untouchedUrl.add(output);
+            if (splitted.length > 1) {
+                output = splitted[1];
+
+                //it the string is relative path we concatenate with the url
+                if (!output.startsWith("#")) {
+                    if (!output.startsWith("https://")) {
+
+                        if (!scrapUrl.toString().endsWith("/") && !output.startsWith("/")) {
+                            output = "/" + output;
+                        }
+                        finalString = scrapUrl.toString() + output;
+                        if (output.length() > 2) {
+                            untouchedUrl.add(output);
+                        }
+                    } else {
+                        finalString = output;
                     }
-                } else {
-                    finalString = output;
+                    try {
+                        strUrl = new URL(finalString);
+                    } catch (MalformedURLException e) {
+                        throw new AraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error converting string to URL");
+                    }
+                    containedUrls.add(strUrl);
                 }
-                try {
-                    strUrl = new URL(finalString);
-                } catch (MalformedURLException e) {
-                    throw new AraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error converting string to URL");
-                }
-                containedUrls.add(strUrl);
             }
         }
+
         return containedUrls;
     }
 
@@ -98,6 +118,17 @@ public class Crawler extends Thread {
             previousCheck = check;
             try {
                 check = downloadNextUrl();
+                if( check){
+                    try {
+                        System.out.println("SLeeping time: " + sleepTime);
+                        synchronized (Thread.currentThread()){
+                            TestCounter++;
+                        }
+                        Thread.sleep(sleepTime);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             } catch (AraneaException e) {
                 if (e.getLevel() == AraneaLogger.AraneaLoggerLevels.WARNING) {
                     check = true;
@@ -129,6 +160,7 @@ public class Crawler extends Thread {
     public boolean downloadNextUrl() throws AraneaException {
 
         int responseCode;
+        Image img = null;
         URL scrapUrl;
         String savePath;
         String replacedResponse;
@@ -150,8 +182,28 @@ public class Crawler extends Thread {
             return false;
         }
 
-        if (!sieveInstance.checkURL(scrapUrl.toString()))
-            return true;
+        if( sieveInstance != null) {
+            if (!sieveInstance.checkURL(scrapUrl.toString()))
+                return true;
+        }
+
+        //check if it an image
+        if (scrapUrl.toString().endsWith(".jpg") || scrapUrl.toString().endsWith(".jpeg")){
+
+            try {
+                savePath = getSavePath(scrapUrl);
+                Path checkFile = Paths.get(savePath);
+
+                if (!Files.exists(checkFile)) {
+                    InputStream in = scrapUrl.openStream();
+                    Files.copy(in, Paths.get(savePath));
+                }
+                return true;
+            }
+            catch (IOException e){
+                return true;
+            }
+        }
 
         try {
             con = (HttpURLConnection) scrapUrl.openConnection();
@@ -186,6 +238,10 @@ public class Crawler extends Thread {
                 //create directories and get the save path
                 savePath = getSavePath(scrapUrl);
 
+                //filter extracted URLs using Sieve
+                if (sieveInstance != null) {
+                    extractedUrls = checkSieve(extractedUrls);
+                }
                 //convert html links to relative paths
                 replacedResponse = replaceToLocal(response, extractedUrls, untouchedUrl);
 
@@ -206,6 +262,7 @@ public class Crawler extends Thread {
         } catch (IOException e) {
             throw new UnsuccessfullResponseAraneaException(AraneaLogger.AraneaLoggerLevels.WARNING);
         }
+
         return true;
     }
 
@@ -215,13 +272,14 @@ public class Crawler extends Thread {
         String hostName;
         String finalPath = finalDirectory;
         String path;
-        String[] splitted;
-        Path checkPath;
-
-        StringBuilder relativePath = new StringBuilder();
 
         hostName = url.getHost();
         path = url.getPath();
+
+        //check if finalPath ends with "/"
+        if (!finalPath.endsWith("/")){
+            finalPath = finalPath + "/";
+        }
 
         //process hostName
         if (hostName.startsWith("www.")) {
@@ -233,7 +291,7 @@ public class Crawler extends Thread {
         }
 
         if (path.equals("/")) {
-            path = "\\index.html";
+            path = "/index.html";
         }
 
         finalPath += hostName;
@@ -254,44 +312,55 @@ public class Crawler extends Thread {
         //LoL - List of Links :D
         int intIndex;
         String relPath;
-        String strinResponse = response.toString();
         String replaced;
-        String out;
 
         for (URL l : LoL) {
-            intIndex = response.indexOf(l.toString());
+            intIndex = 1;
 
-            if (intIndex != -1) {
-                relPath = l.getPath();
-                response = response.replace(intIndex, intIndex + l.toString().length(), relPath);
+            while(intIndex != -1) {
+                intIndex = response.indexOf(l.toString());
+
+                if (intIndex != -1) {
+                    relPath = l.getPath();
+                    response = response.replace(intIndex, intIndex + l.toString().length(), relPath);
+                }
             }
         }
         replaced = response.toString();
-
-        Iterator<String> iterator = untouchedUrl.iterator();
-
-        while (iterator.hasNext()) {
-            String element = iterator.next();
-            String replacementString = element;
-            replaced = replaced.replaceAll(element, replacementString);
-            iterator.remove();
-        }
-
-        untouchedUrl.clear();
         return replaced;
     }
 
     //writes response to file path
     private void saveResponse(String response, String path) throws AraneaException {
 
-        try {
-            BufferedWriter bwr = new BufferedWriter(new FileWriter(new File(path)));
-            bwr.write(response);
-            bwr.flush();
-            bwr.close();
-        } catch (IOException e) {
-            throw new WriteToFileAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
+        Path checkFile = Paths.get(path);
+        if(!Files.exists(checkFile)) {
+            try {
+                BufferedWriter bwr = new BufferedWriter(new FileWriter(new File(path)));
+                bwr.write(response);
+                bwr.flush();
+                bwr.close();
+            } catch (IOException e) {
+                throw new WriteToFileAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
+            }
         }
+    }
+
+    //checks the list of urls with sieve
+    private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
+        List<URL> newList = new ArrayList<URL>();
+
+        if( sieveInstance == null){
+            return currentList;
+        }
+
+        for(URL u:currentList){
+            if(sieveInstance.checkURL(u.toString())){
+                newList.add(u);
+            }
+        }
+
+        return newList;
     }
 
     private void exampleOfUse() throws AraneaException {
@@ -311,7 +380,7 @@ public class Crawler extends Thread {
         urlQ.add(url2);
 
         for (int i=0; i<thNumber; i++){
-            Crawler crawler = new Crawler("./newDir","CustomUserAgent", sieve,1);
+            Crawler crawler = new Crawler("./newDir","CustomUserAgent", sieve,1, 1);
             crawler.start();
         }
     }
@@ -356,6 +425,12 @@ public class Crawler extends Thread {
     public class RemoveFailAraneaException extends AraneaException {
         public RemoveFailAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Failed to remove from URLQueue");
+        }
+    }
+
+    public class InterruptedSleepAraneaException extends AraneaException{
+        public InterruptedSleepAraneaException(AraneaLogger.AraneaLoggerLevels level) {
+            super(level, "Sleep was interrupted");
         }
     }
 

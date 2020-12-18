@@ -26,27 +26,20 @@ public class URLQueue {
         return Singleton;
     }
 
-    public void PrintUrlQueue(){
-        Iterator<URL> iterator;
-        System.out.println("Printing Queue");
-
-        for(URL url: urlSet){
-            System.out.println(url.toString());
-        }
-        System.out.println("\n");
-    }
-
     //if list is empty returns null
-    synchronized public URL remove() throws AraneaException {
+    synchronized public URL remove() throws UninitializedQueueAraneaException {
         int localCounter = 0;
 
+        if (urlSet.isEmpty()){
+            throw new UninitializedQueueAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
+        }
         for (URL retUrl : urlSet) {
+            if (localCounter == maxElements){
+                return null;
+            }
             if (localCounter == counter) {
                 counter++;
                 return retUrl;
-            }
-            if (localCounter == maxElements){
-                return null;
             }
             localCounter++;
         }
@@ -59,4 +52,9 @@ public class URLQueue {
         }
     }
 
+    public class UninitializedQueueAraneaException extends AraneaException {
+        public UninitializedQueueAraneaException(AraneaLogger.AraneaLoggerLevels level) {
+            super(level, "UrlQueue is not initialized");
+        }
+    }
 }
