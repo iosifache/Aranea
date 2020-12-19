@@ -189,34 +189,34 @@ public class Aranea {
    * @throws MalformedURLException if url can be initialised from string
    */
   private static void startCrawling(String file)
-      throws FileNotFoundException, MalformedURLException, Sieve.FailedRequestException {
+          throws FileNotFoundException, MalformedURLException, Sieve.FailedRequestException, InterruptedException {
 
     List<String> list = readFileContent(file);
+    boolean startCrawlers = false;
     for (String link : list) {
-      try {
-        if (sieve.checkURL(link) == true) {
-          urlQueue.add(new URL(link));
-          addIgnoredPagesToSieve(link);
-        }
-      } catch (Sieve.FailedRequestException e) {
-        e.logException(araneaLogger);
-      }
+
+      urlQueue.add(new URL(link));
+      addIgnoredPagesToSieve(link);
     }
+
 
     List<Crawler> crawlers = new ArrayList<Crawler>(araneaConfiguration.getMaxThreads());
     for (int i = 0; i < araneaConfiguration.getMaxThreads(); i++){
-      Crawler currentCrawler = new Crawler(araneaConfiguration.getDownloadDir(), USER_AGENT, sieve, araneaConfiguration.getMaxThreads());
-      currentCrawler.start();
-      crawlers.add(currentCrawler);
+      Thread currentCrawler = new Crawler(araneaConfiguration.getDownloadDir(),
+              USER_AGENT,
+              sieve,
+              araneaConfiguration.getMaxThreads(),
+              araneaConfiguration.getDelay());
+      currentCrawler.run();
+      crawlers.add((Crawler) currentCrawler);
     }
 
+
     for (Crawler crawler : crawlers){
-      try {
-        crawler.join();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      crawler.join();
     }
+
+
 
     if (araneaConfiguration.isSitemapGenerated()){
       for (String link : list) {
@@ -325,6 +325,7 @@ public class Aranea {
   /** Main class */
   public static void main(String[] argv)
       throws AraneaException, MalformedURLException, FileNotFoundException {
+    System.out.println("Working Directory = " + System.getProperty("user.dir"));
     Aranea aranea = Aranea.getInstance(argv);
   }
 }
