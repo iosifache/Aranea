@@ -1,37 +1,33 @@
 package com.aranea;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.stream.Stream;
 
 public class Crawler extends Thread {
 
     public static int counter = 0;
-    private String userAgent;
-    private long sleepTime;
+    //test variable
+    public static int TestCounter;
     private static Pattern relativePattern;
     private static Pattern pattern;
     private static String finalDirectory;
-    private final AraneaLogger logger;
+    private static AraneaLogger logger;
     private final URLQueue urlQueue;
-    private Sieve sieveInstance;
+    private final String userAgent;
+    private final long sleepTime;
+    private final Sieve sieveInstance;
 
-    //test variable
-    public static int TestCounter;
 
     public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers, long initializeSleep) {
 
@@ -60,7 +56,7 @@ public class Crawler extends Thread {
         List<URL> containedUrls = new ArrayList<URL>();
         Matcher urlMatcher = pattern.matcher(urlResponse);
 
-
+        //extract all hhtps
         while (urlMatcher.find()) {
             output = urlResponse.substring(urlMatcher.start(0),
                     urlMatcher.end(0));
@@ -68,11 +64,13 @@ public class Crawler extends Thread {
             try {
                 strUrl = new URL(output);
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                throw new MalformedURLAraneaException();
             }
 
             containedUrls.add(strUrl);
         }
+
+        //extract links that start with href
         Matcher urlRelative = relativePattern.matcher(urlResponse);
         while (urlRelative.find()) {
 
@@ -81,8 +79,7 @@ public class Crawler extends Thread {
 
             if (splitted.length > 1) {
                 output = splitted[1];
-
-                //it the string is relative path we concatenate with the url
+                //if the string is relative path we concatenate with the url
                 if (!output.startsWith("#")) {
                     if (!output.startsWith("https://")) {
 
@@ -99,7 +96,7 @@ public class Crawler extends Thread {
                     try {
                         strUrl = new URL(finalString);
                     } catch (MalformedURLException e) {
-                        throw new AraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error converting string to URL");
+                        throw new MalformedURLAraneaException();
                     }
                     containedUrls.add(strUrl);
                 }
@@ -107,6 +104,53 @@ public class Crawler extends Thread {
         }
 
         return containedUrls;
+    }
+
+    //generates and creates the directories where the content will be saved
+    synchronized public static String getSavePath(URL url) throws AraneaException {
+
+        String hostName;
+        String finalPath = finalDirectory;
+        String path;
+        boolean check = false;
+        File newFile = null;
+
+        hostName = url.getHost();
+        path = url.getPath();
+
+        //check if finalPath ends with "/"
+        if (!finalPath.endsWith("/")) {
+            finalPath = finalPath + "/";
+        }
+
+        //process hostName
+        if (hostName.startsWith("www.")) {
+            hostName = hostName.replace("www.", "");
+        }
+
+        if (hostName.endsWith(".com")) {
+            hostName = hostName.replace(".com", "");
+        }
+
+        if (path.equals("/")) {
+            path = "/index.html";
+        }
+
+
+        finalPath += hostName;
+        finalPath += path;
+
+        Path pathToFile = Paths.get(finalPath);
+        logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Path to file: " + pathToFile.getParent().toString());
+
+        try {
+            Files.createDirectories(pathToFile.getParent());
+        }
+        catch (IOException e) {
+           throw new CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error creating directory");
+        }
+
+        return finalPath;
     }
 
     public void run() {
@@ -118,15 +162,15 @@ public class Crawler extends Thread {
             previousCheck = check;
             try {
                 check = downloadNextUrl();
-                if( check){
+                if (check) {
                     try {
-                        System.out.println("SLeeping time: " + sleepTime);
-                        synchronized (Thread.currentThread()){
+                        synchronized (Thread.currentThread()) {
                             TestCounter++;
                         }
+                        logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Thread " + Thread.currentThread().toString() + " is sleeping");
                         Thread.sleep(sleepTime);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        throw new InterruptedSleepAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
                     }
                 }
             } catch (AraneaException e) {
@@ -136,10 +180,10 @@ public class Crawler extends Thread {
                     try {
                         throw e;
                     } catch (AraneaException ex) {
-                        //logger.log(AraneaLogger.AraneaLoggerLevels.ERROR, "Error " + ex.getMessage());
+                        logger.log(AraneaLogger.AraneaLoggerLevels.ERROR, "Error " + ex.getMessage());
                     }
                 }
-                //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Error " + e.getMessage());
+                logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Error " + e.getMessage());
             }
 
             if (!previousCheck && check) {
@@ -160,7 +204,6 @@ public class Crawler extends Thread {
     public boolean downloadNextUrl() throws AraneaException {
 
         int responseCode;
-        Image img = null;
         URL scrapUrl;
         String savePath;
         String replacedResponse;
@@ -171,25 +214,25 @@ public class Crawler extends Thread {
 
         try {
             scrapUrl = urlQueue.remove();
-            //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Next URL to scrap is: " + scrapUrl.toString());
+            if( scrapUrl != null){
+                logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Next URL to scrap is: " + scrapUrl.toString());
+            }
         } catch (AraneaException e) {
             throw new RemoveFailAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
         }
 
         //queue is empty
         if (scrapUrl == null) {
-            //logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Queue is empty");
             return false;
         }
 
-        if( sieveInstance != null) {
+        if (sieveInstance != null) {
             if (!sieveInstance.checkURL(scrapUrl.toString()))
                 return true;
         }
 
         //check if it an image
-        if (scrapUrl.toString().endsWith(".jpg") || scrapUrl.toString().endsWith(".jpeg")){
-
+        if (scrapUrl.toString().endsWith(".jpg") || scrapUrl.toString().endsWith(".jpeg")) {
             try {
                 savePath = getSavePath(scrapUrl);
                 Path checkFile = Paths.get(savePath);
@@ -199,8 +242,8 @@ public class Crawler extends Thread {
                     Files.copy(in, Paths.get(savePath));
                 }
                 return true;
-            }
-            catch (IOException e){
+            } catch (IOException e) {
+                logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Failed to download image: " + scrapUrl.toString());
                 return true;
             }
         }
@@ -266,58 +309,19 @@ public class Crawler extends Thread {
         return true;
     }
 
-    //generates and creates the directories where the content will be saved
-    public static String getSavePath(URL url) throws AraneaException {
-
-        String hostName;
-        String finalPath = finalDirectory;
-        String path;
-
-        hostName = url.getHost();
-        path = url.getPath();
-
-        //check if finalPath ends with "/"
-        if (!finalPath.endsWith("/")){
-            finalPath = finalPath + "/";
-        }
-
-        //process hostName
-        if (hostName.startsWith("www.")) {
-            hostName = hostName.replace("www.", "");
-        }
-
-        if (hostName.endsWith(".com")) {
-            hostName = hostName.replace(".com", "");
-        }
-
-        if (path.equals("/")) {
-            path = "/index.html";
-        }
-
-        finalPath += hostName;
-        finalPath += path;
-
-        Path pathToFile = Paths.get(finalPath);
-        try {
-            Files.createDirectories(pathToFile.getParent());
-        } catch (IOException e) {
-            throw new CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
-        }
-
-        return finalPath;
-    }
-
     //is supposed to replace URL with local reference - doesn't work as supposed
     private String replaceToLocal(StringBuffer response, List<URL> LoL, Set<String> untouchedUrl) {
         //LoL - List of Links :D
         int intIndex;
         String relPath;
         String replaced;
+        String localConverted;
+        String finalResponse;
 
         for (URL l : LoL) {
             intIndex = 1;
 
-            while(intIndex != -1) {
+            while (intIndex != -1) {
                 intIndex = response.indexOf(l.toString());
 
                 if (intIndex != -1) {
@@ -327,14 +331,39 @@ public class Crawler extends Thread {
             }
         }
         replaced = response.toString();
-        return replaced;
+        finalResponse = replaced;
+
+        for(String local: untouchedUrl){
+            localConverted = local;
+
+            if(!localConverted.startsWith("./")){
+                if(!localConverted.startsWith("/")) {
+                    localConverted = "./" + localConverted;
+                }
+                else{
+                    localConverted = "." + localConverted;
+                }
+            }
+            finalResponse = finalResponse.replaceAll(local, localConverted);
+        }
+        return finalResponse;
     }
 
     //writes response to file path
-    private void saveResponse(String response, String path) throws AraneaException {
-
+    private void saveResponse(String response, String path) throws AraneaException, IOException {
         Path checkFile = Paths.get(path);
-        if(!Files.exists(checkFile)) {
+
+//        if(!path.matches("[.][a-z]{0,4}$")){
+//            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Path matched : "+path);
+//
+//            if(response.contains("<!DOCTYPE html>")){
+//                Path newPath = Paths.get(path + ".html");
+//                path = path + ".html";
+//                checkFile = newPath;
+//            }
+//        }
+
+        if (!Files.exists(checkFile)) {
             try {
                 BufferedWriter bwr = new BufferedWriter(new FileWriter(new File(path)));
                 bwr.write(response);
@@ -350,12 +379,12 @@ public class Crawler extends Thread {
     private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
         List<URL> newList = new ArrayList<URL>();
 
-        if( sieveInstance == null){
+        if (sieveInstance == null) {
             return currentList;
         }
 
-        for(URL u:currentList){
-            if(sieveInstance.checkURL(u.toString())){
+        for (URL u : currentList) {
+            if (sieveInstance.checkURL(u.toString())) {
                 newList.add(u);
             }
         }
@@ -365,70 +394,101 @@ public class Crawler extends Thread {
 
     private void exampleOfUse() throws AraneaException {
         int thNumber = 4;
+        long sleepTime = 0;
         URLQueue urlQ = URLQueue.getInstance(20);
         URL url2;
+        List<Crawler> crwList = new ArrayList<Crawler>();
 
         // Init sieve
-        String extensions[] = {"*"};
+        String[] extensions = {"*"};
         Sieve sieve = Sieve.getInstance(extensions, 1000000, "*");
 
+        //create URL
         try {
             url2 = new URL("https://webscraper.io/");
         } catch (MalformedURLException e) {
-            throw  new AraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Malformed URL");
+            throw new MalformedURLAraneaException();
         }
+
         urlQ.add(url2);
 
-        for (int i=0; i<thNumber; i++){
-            Crawler crawler = new Crawler("./newDir","CustomUserAgent", sieve,1, 1);
-            crawler.start();
+        //Create Threads and start them
+        for(int i=0; i<thNumber; i++){
+            Crawler crw = new Crawler("../SaveDir", "Aranea", null, thNumber, sleepTime);
+            crwList.add(crw);
+        }
+
+        for(int i=0; i<4; i++){
+            crwList.get(i).start();
+        }
+
+        try {
+            for (int i = 0; i < 4; i++) {
+                crwList.get(i).join();
+            }
+        }
+        catch (InterruptedException e){
+            throw new InterruptedAraneaException();
+        }
+
+    }
+
+    public static class CreateDirecoryAraneaException extends AraneaException {
+        public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level, String message) {
+            super(level, "Error creating the directory" + message);
         }
     }
 
     //exceptions
-    public class ConnectionAraneaException extends AraneaException {
+    public static class ConnectionAraneaException extends AraneaException {
         public ConnectionAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Error opening connection");
         }
     }
 
-    public static class CreateDirecoryAraneaException extends AraneaException {
-        public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Error creating the directory");
-        }
-    }
-
-    public class PageRetrieveAraneaException extends AraneaException {
+    public static class PageRetrieveAraneaException extends AraneaException {
         public PageRetrieveAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Error retrieving the page");
         }
     }
 
-    public class WriteToFileAraneaException extends AraneaException {
+    public static class WriteToFileAraneaException extends AraneaException {
         public WriteToFileAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Error writing content to the directory");
         }
     }
 
-    public class UnsuccessfullResponseAraneaException extends AraneaException {
+    public static class UnsuccessfullResponseAraneaException extends AraneaException {
         public UnsuccessfullResponseAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "The response was not sucesfull");
         }
     }
 
-    public class InsertFailAraneaException extends AraneaException {
+    public static class InsertFailAraneaException extends AraneaException {
         public InsertFailAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Failed to insert in URLQueue");
         }
     }
 
-    public class RemoveFailAraneaException extends AraneaException {
+    public static class RemoveFailAraneaException extends AraneaException {
         public RemoveFailAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Failed to remove from URLQueue");
         }
     }
 
-    public class InterruptedSleepAraneaException extends AraneaException{
+    public static class InterruptedAraneaException extends AraneaException{
+        public InterruptedAraneaException() {
+            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Interrupted Thread Excetption");
+        }
+    }
+
+    public static class MalformedURLAraneaException extends AraneaException{
+        public MalformedURLAraneaException() {
+            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Malformed URL");
+        }
+    }
+
+    public static class InterruptedSleepAraneaException extends AraneaException {
         public InterruptedSleepAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Sleep was interrupted");
         }
