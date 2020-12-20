@@ -228,7 +228,7 @@ public class Crawler extends Thread {
             return false;
         }
 
-        if (sieveInstance != null) {
+        if (sieveInstance != null ) {
             if (!sieveInstance.checkURL(scrapUrl.toString()))
                 return true;
         }
@@ -394,9 +394,14 @@ public class Crawler extends Thread {
         }
 
         for (URL u : currentList) {
-            if (sieveInstance.checkURL(u.toString())) {
-                newList.add(u);
+            try {
+                if (sieveInstance.checkURL(u.toString())) {
+                    newList.add(u);
+                }
+            }catch (Sieve.FailedRequestException e) {
+                e.logException(logger);
             }
+
         }
 
         return newList;

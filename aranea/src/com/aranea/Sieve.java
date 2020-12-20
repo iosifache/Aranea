@@ -42,6 +42,7 @@ public class Sieve {
 
   public boolean checkURL(String url) throws FailedRequestException {
 
+
     boolean isInRobots = this.ignoredPages.contains(url);
     if (isInRobots) return false;
 
@@ -50,9 +51,13 @@ public class Sieve {
           this.getFileExtension(url)
               .filter(extension -> this.allowedExtensions.contains(extension))
               .isPresent();
+     if(url.lastIndexOf("/")==url.length()-1)
+       return true;
+
       if (!hasRightExtension) return false;
     }
 
+    //return  true;
     return this.getFileSize(url) <= this.maxSize;
 
   }
@@ -73,6 +78,7 @@ public class Sieve {
   }
 
   private Optional<String> getFileExtension(String filename) {
+
     return Optional.ofNullable(filename)
         .filter(f -> f.contains("."))
         .map(f -> f.substring(filename.lastIndexOf(".") + 1));
