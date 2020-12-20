@@ -20,7 +20,7 @@ class URLQueueTest {
     }
 
     @Test
-    void getInstance() {
+    void getInstanceTest() {
         assertNotNull(URLQueue.getInstance(20));
     }
 

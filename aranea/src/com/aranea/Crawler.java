@@ -1,18 +1,20 @@
 package com.aranea;
 
-import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class Crawler extends Thread {
 
@@ -117,6 +119,7 @@ public class Crawler extends Thread {
 
         hostName = url.getHost();
         path = url.getPath();
+        String urlString = url.toString();
 
         //check if finalPath ends with "/"
         if (!finalPath.endsWith("/")) {
@@ -132,7 +135,7 @@ public class Crawler extends Thread {
             hostName = hostName.replace(".com", "");
         }
 
-        if (path.equals("/")) {
+        if (path.equals("/") || url.toString().endsWith("/")) {
             path = "/index.html";
         }
 
@@ -145,9 +148,8 @@ public class Crawler extends Thread {
 
         try {
             Files.createDirectories(pathToFile.getParent());
-        }
-        catch (IOException e) {
-           throw new CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error creating directory");
+        } catch (IOException e) {
+            throw new CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR, "Error creating directory");
         }
 
         return finalPath;
@@ -214,7 +216,7 @@ public class Crawler extends Thread {
 
         try {
             scrapUrl = urlQueue.remove();
-            if( scrapUrl != null){
+            if (scrapUrl != null) {
                 logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Next URL to scrap is: " + scrapUrl.toString());
             }
         } catch (AraneaException e) {
@@ -333,35 +335,43 @@ public class Crawler extends Thread {
         replaced = response.toString();
         finalResponse = replaced;
 
-        for(String local: untouchedUrl){
+        for (String local : untouchedUrl) {
             localConverted = local;
 
-            if(!localConverted.startsWith("./")){
-                if(!localConverted.startsWith("/")) {
+            if (!localConverted.startsWith("./")) {
+                if (!localConverted.startsWith("/")) {
                     localConverted = "./" + localConverted;
-                }
-                else{
+                } else {
                     localConverted = "." + localConverted;
                 }
             }
+
+            try {
+                local = URLEncoder.encode(local, StandardCharsets.UTF_8.name());
+                localConverted = URLEncoder.encode(localConverted, StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException e) {
+                logger.log(AraneaLogger.AraneaLoggerLevels.ERROR, "Eroare URLEncoder");
+            }
             finalResponse = finalResponse.replaceAll(local, localConverted);
+
+
         }
         return finalResponse;
     }
 
     //writes response to file path
-    private void saveResponse(String response, String path) throws AraneaException, IOException {
+    private void saveResponse(String response, String path) throws AraneaException {
         Path checkFile = Paths.get(path);
 
-//        if(!path.matches("[.][a-z]{0,4}$")){
-//            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Path matched : "+path);
-//
-//            if(response.contains("<!DOCTYPE html>")){
-//                Path newPath = Paths.get(path + ".html");
-//                path = path + ".html";
-//                checkFile = newPath;
-//            }
-//        }
+        if (!path.matches("(.*)?\\.[a-z]{0,4}$")) {
+            logger.log(AraneaLogger.AraneaLoggerLevels.INFO, "Path matched : " + path);
+
+            if (response.contains("<!DOCTYPE html>")) {
+                Path newPath = Paths.get(path + ".html");
+                path = path + ".html";
+                checkFile = newPath;
+            }
+        }
 
         if (!Files.exists(checkFile)) {
             try {
@@ -413,12 +423,12 @@ public class Crawler extends Thread {
         urlQ.add(url2);
 
         //Create Threads and start them
-        for(int i=0; i<thNumber; i++){
+        for (int i = 0; i < thNumber; i++) {
             Crawler crw = new Crawler("../SaveDir", "Aranea", null, thNumber, sleepTime);
             crwList.add(crw);
         }
 
-        for(int i=0; i<4; i++){
+        for (int i = 0; i < 4; i++) {
             crwList.get(i).start();
         }
 
@@ -426,8 +436,7 @@ public class Crawler extends Thread {
             for (int i = 0; i < 4; i++) {
                 crwList.get(i).join();
             }
-        }
-        catch (InterruptedException e){
+        } catch (InterruptedException e) {
             throw new InterruptedAraneaException();
         }
 
@@ -476,13 +485,13 @@ public class Crawler extends Thread {
         }
     }
 
-    public static class InterruptedAraneaException extends AraneaException{
+    public static class InterruptedAraneaException extends AraneaException {
         public InterruptedAraneaException() {
             super(AraneaLogger.AraneaLoggerLevels.ERROR, "Interrupted Thread Excetption");
         }
     }
 
-    public static class MalformedURLAraneaException extends AraneaException{
+    public static class MalformedURLAraneaException extends AraneaException {
         public MalformedURLAraneaException() {
             super(AraneaLogger.AraneaLoggerLevels.ERROR, "Malformed URL");
         }

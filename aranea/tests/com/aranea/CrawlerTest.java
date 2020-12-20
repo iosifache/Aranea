@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -21,8 +22,8 @@ class CrawlerTest {
     URLQueue q;
     Path path;
     List<String> allPaths;
-    int queueLen = 4;
-    long waitingTime = 500;
+    int queueLen = 120;
+    long waitingTime = 0;
     String mainStr = "10.0.0.1/";
     String saveDir = "../SaveDir/";
     List<URL> urlList, limitURLlist;
@@ -89,10 +90,11 @@ class CrawlerTest {
 
     //basic testing with local hosted website
     @Test
-    void downloadNextUrlLocalBasic() throws MalformedURLException, AraneaException {
+    void downloadNextUrlLocalBasic() throws MalformedURLException, InterruptedException {
 
         q.add(new URL("http://10.0.0.1/"));
         testCrawler.run();
+        testCrawler.join();
 
         //test if file exists in path
         allPaths = addToList(saveDir, mainStr, true);
@@ -106,16 +108,34 @@ class CrawlerTest {
 
     }
 
+    void runMultiThread(int threadNumber) throws Crawler.InterruptedAraneaException {
+        List<Crawler> crwList = new ArrayList<Crawler>();
+
+        for(int i=0; i<threadNumber; i++){
+            Crawler crw = new Crawler(saveDir, "Aranea", null, threadNumber, waitingTime);
+            crwList.add(crw);
+        }
+
+        for(int i=0; i<threadNumber; i++){
+            crwList.get(i).start();
+        }
+
+        try {
+            for (int i = 0; i < threadNumber; i++) {
+                crwList.get(i).join();
+            }
+        }
+        catch (InterruptedException e){
+            throw new Crawler.InterruptedAraneaException();
+        }
+    }
     //multithreading testing with local hosted website
     @Test
-    void downloadNextUrlLocalMultiThreading() throws MalformedURLException, InterruptedException {
+    void downloadNextUrlLocalMultiThreading() throws MalformedURLException, Crawler.InterruptedAraneaException {
 
         q.add(new URL("http://10.0.0.1/"));
 
-        for (int i = 0; i < 4; i++) {
-            Crawler crawler = new Crawler(saveDir, "CustomUserAgent", null, 4, 0);
-            crawler.start();
-        }
+        runMultiThread(4);
 
         //test if file exists in path
         allPaths = addToList(saveDir, mainStr, true);
@@ -130,16 +150,11 @@ class CrawlerTest {
 
     //mutithreading test with online website
     @Test
-    void downloadNextUrlPublicWebsiteMultiThreading() throws MalformedURLException, InterruptedException {
+    void downloadNextUrlPublicWebsiteMultiThreading() throws MalformedURLException, Crawler.InterruptedAraneaException {
+        //queue size 50
+        q.add(new URL("https://w3schools.com"));
 
-        q.add(new URL("https://www.w3schools.com/"));
-
-        for (int i = 0; i < 4; i++) {
-            Crawler crawler = new Crawler(saveDir, "CustomUserAgent", null, 4, 0);
-            crawler.start();
-            //sleep in order to wait other threads finsih their job
-            Thread.sleep(1000);
-        }
+        runMultiThread(4);
 
         //test if files exist in path
         allPaths = addToList(saveDir, "", false);
@@ -154,13 +169,13 @@ class CrawlerTest {
 
     //basic testing with online website
     @Test
-    void downloadNextUrlPublicWebsiteBasic() throws MalformedURLException {
+    void downloadNextUrlPublicWebsiteBasic() throws MalformedURLException, InterruptedException {
 
         testCrawler = new Crawler(saveDir, "AraneaBot", null, 1, 0);
         q.add(new URL("https://www.w3schools.com/"));
 
         testCrawler.run();
-
+        testCrawler.join();
         //test if file exists in path
 
         allPaths = addToList(saveDir, "", false);
@@ -222,7 +237,7 @@ class CrawlerTest {
             pathString = saveDir + mainStr + "/images/pic04.jpg";
             allPaths.add(pathString);
         } else {
-            pathString = saveDir + mainStr + "/instagram/w3schools.com_official";
+            pathString = saveDir + mainStr + "/instagram/index.html";
             allPaths.add(pathString);
 
             pathString = saveDir + mainStr + "/w3schools/index.html";
