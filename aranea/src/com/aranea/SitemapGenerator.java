@@ -12,12 +12,19 @@ public class SitemapGenerator extends FolderParser {
     private final Path outputFile;
     private Map<String, List<String>> systemMap;
 
+    /**
+     * @param folderPath
+     * @param outputFileName
+     */
     public SitemapGenerator(String folderPath, String outputFileName) {
         super(folderPath);
         this.outputFile = Paths.get(outputFileName);
         systemMap = new HashMap<>();
     }
 
+    /**
+     * @throws AraneaException
+     */
     @Override
     public void parse() throws AraneaException {
         try {
@@ -30,6 +37,10 @@ public class SitemapGenerator extends FolderParser {
 
     }
 
+    /**
+     * @param path
+     * @return
+     */
     protected boolean processFile(Path path) {
         File currentFile = path.toFile();
         if (currentFile.isDirectory())
@@ -37,6 +48,10 @@ public class SitemapGenerator extends FolderParser {
         return true;
     }
 
+    /**
+     * @param currentFile
+     * @return
+     */
     private List<String> fetchDirFiles(File currentFile) {
         File[] files = currentFile.listFiles();
         List<String> dirFileNames = new ArrayList<>();
@@ -51,12 +66,14 @@ public class SitemapGenerator extends FolderParser {
         return dirFileNames;
     }
 
+    /**
+     * @throws CannotWriteException
+     */
     private void printToOutputFile() throws CannotWriteException {
         byte[] desiredMap = {};
-        try{
+        try {
             Files.createFile(outputFile);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ;
         }
         systemMap.forEach((dirName, dirContent) -> {
@@ -73,6 +90,10 @@ public class SitemapGenerator extends FolderParser {
         });
     }
 
+    /**
+     * @param dirName
+     * @throws CannotWriteException
+     */
     private void printDirName(String dirName) throws CannotWriteException {
         byte[] formattedDirName = String.format("%s\n", dirName).getBytes();
         try {
@@ -82,6 +103,10 @@ public class SitemapGenerator extends FolderParser {
         }
     }
 
+    /**
+     * @param dirContent
+     * @throws CannotWriteException
+     */
     private void printDirFiles(List<String> dirContent) throws CannotWriteException {
         dirContent.forEach(fileName -> {
             byte[] formattedFileName = String.format("\t%s\n", fileName).getBytes();

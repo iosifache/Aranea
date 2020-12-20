@@ -10,11 +10,18 @@ public class PatternFinder extends FolderParser {
 
     private final String pattern;
 
+    /**
+     * @param folderPath
+     * @param pattern
+     */
     public PatternFinder(String folderPath, String pattern) {
         super(folderPath);
         this.pattern = pattern;
     }
 
+    /**
+     * @throws AraneaException
+     */
     @Override
     public void parse() throws AraneaException {
         try {
@@ -27,6 +34,10 @@ public class PatternFinder extends FolderParser {
 
     }
 
+    /**
+     * @param path
+     * @return
+     */
     protected boolean processFile(Path path) {
         try {
             return Files.readAllLines(path)
