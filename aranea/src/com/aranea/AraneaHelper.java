@@ -1,5 +1,6 @@
 package com.aranea;
 
+/* Class printing to screen help messages */
 public class AraneaHelper {
 
   static String banner = """
@@ -54,6 +55,31 @@ COMENZI:
 UTILIZARE:
   Descarcă conținutului unor website-uri listate într-un fișier (URLS_FILE),pe
   baza unui alt fișier, de configurare (CONFIG_FILE).
+
+FORMATUL FIȘIERULUI DE CONFIGURARE:
+  Fișierul de tip CONFIG_FILE setează configurația inițială a programului,
+  prin intermediul anumitor chei:
+  - "download_dir", șir de caractere pentru directorul de descărcare
+  - "log_file", șir de caractere pentru fișierul de jurnal
+  - "log_level", întreg pentru prioritatea minimă a unui eveniment pentru a fi\s
+    jurnalizat (opțional, implicit 0)
+  - "is_sitemap_generated", boolean care indică dacă se vor genera hărți pentru\s
+    website-urile descărcate (opțional, implicit "true")
+  - "max_threads", întreg pentru numărul maxim de fire de execuție (opțional,
+    implicit 1000)
+  - "delay", numărul de secunde între două cereri consecutive către un server
+    web țintă (opțional, implicit 1)
+  - "allowed_extensions", șir de caractere pentru extensii ale fișierelor ce
+     vor fi descărcate, separate prin virgulă (opțional, implicit "*")
+  - "allowed_max_size", întreg pentru dimensiunea maximă, în octeți, avută de
+    un fișier ce va fi descărcat (opțional, implicit 1000000000)
+  - "allowed_pattern", șir de caractere pentru un șablon Regex ce trebuie să se
+    regăsească într-un fișier pentru a fi descărcat (opțional, implicit "")
+  - "skip_robotsdottxt_files", boolean care indică dacă fișierele menționate în
+    robots.txt} nu vor fi descărcate (opțional, implicit "true").
+  Conform cu formatul standard al unui fișier de proprietăți, pe care fișierele
+  de configurare îl respectă, fiecărei chei îi corespunde o valoare. Perechile
+  chei-valoare trebuiesc separate între ele prin linie nouă.
 """;
 
 
@@ -93,11 +119,17 @@ UTILIZARE:
   anume (COMMAND).
 """;
 
+  /* Give help about using the program */
   static void requestGenericHelp(){
     System.out.print(banner);
     System.out.print(genericHelp);
   }
 
+  /**
+   * Give help about a specific command
+   *
+   * @param command Command
+   */
   static void requestCommandHelp(String command){
     System.out.print(banner);
     switch (command){
@@ -110,9 +142,9 @@ UTILIZARE:
     }
   }
 
+  /* Function to exemplify the usage */
   private void exemplifyUsage(){
     AraneaHelper.requestGenericHelp();
     AraneaHelper.requestCommandHelp("crawl");
   }
-
 }
