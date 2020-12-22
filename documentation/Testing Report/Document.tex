@@ -1,0 +1,514 @@
+\documentclass[12pt]{article}
+
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{graphicx}
+\usepackage{minted}
+\usepackage{caption}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
+\usepackage[utf8]{inputenc}
+
+\hyphenpenalty=100000
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,      
+    urlcolor=blue,
+    unicode=false
+}
+\renewcommand*\contentsname{Tabelă de Conținut}
+\renewcommand{\listtablename}{Listă de Tabele}
+\renewcommand\listoflistingscaption{Listă de Exemple}
+\renewcommand*\listfigurename{Listă de Imagini}
+\captionsetup[table]{name=Tabel}
+\renewcommand\listingscaption{Exemplu}
+\renewcommand*\figurename{Imagine}
+\usemintedstyle{bw}
+\setcounter{tocdepth}{2}
+
+\title{
+    \includegraphics[width=3cm, height=3.5cm]{Academy Logo.png} \\
+    \vspace{5mm}
+    {Document pentru Testarea\\
+    Soluției \textbf{Aranea}}
+    \vspace{10mm}
+}
+\vspace{20mm}
+\author{
+    Apostolescu Ștefan \\
+    Băjan Ionuț-Mihăiță \\
+    Brumă Ionuț-Cosmin \\
+    Iosif George-Andrei \\
+    Stanciu Răzvan-Daniel \\
+    \vspace{10mm}
+}
+\ddmmyyyydate
+
+\begin{document}
+
+\null
+\nointerlineskip 
+\vfill
+\let\snewpage \newpage
+\let\newpage \relax
+\maketitle
+\let \newpage \snewpage
+\vfill 
+\break
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\listoflistings
+
+\newpage
+
+\section{Detalii despre Document}
+
+\subsection{Scop}
+Acest document are scopul de a prezenta rezultatele etapei de testare a soluției software Aranea. Aceasta a presupus verificarea funcționării corespunzătoare și a alinierii dintre funcționalitățile finale, cele reieșite în urma perioadei de implementare, și a cerințele stabilite inițial, în documentul "\textit{Specificarea Cerințelor Software}".
+
+\subsection{Conținut}
+Documentul este împărțit în două capitole. Primul prezintă modul în care testarea a fost realizată și un rezumat al întregului proces efectuat. Al doilea capitol oferă o detaliere a fiecărui test în parte.
+
+\newpage
+
+\section{Procesul de Testare}
+
+\subsection{Metodologie}
+
+Testarea a fost efectuată atât prin intermediul unor teste manuale, în care s-a interacționat cu soluția software în linie de comandă, cât și automat, cu ajutorul unor teste unitare create cu ajutorul JUnit.
+
+Din punct de vedere al statusului posibil al testelor efectuate, acestea au fost notate cu:
+\begin{itemize}
+    \item rezultat corect: rezultatele obținute au coincis cu cele așteptate (știute ca fiind corecte); sau
+    \item rezultat parțial corect: rezultatele obținute diferă foarte puțin de cele așteptate.
+\end{itemize}
+
+Unele teste au necesitat modificări ale codului sursă. Acestea sunt menționate în dreptul testului la care au intervenit.
+
+\subsection{Rezumat}
+
+\begin{itemize}
+    \item 34 de teste, dintre care:
+    \begin{itemize}
+        \item cu rezultat corect: 33
+        \item cu rezultat parțial corect: 1
+        \item unitare: 30
+        \item manuale: 4
+    \end{itemize}
+    \item 5 metode ce au necesitat modificări
+\end{itemize}
+
+\newpage
+
+\section{Teste Efectuate}
+
+\subsection{Cazuri de Utilizare}
+
+\subsubsection{Executarea Crawling-ului și Generarea de Hărți}
+
+\begin{itemize}
+    \item tip: manual
+    \item descriere: rularea comenzii \\ \mintinline{bash}{aranea crawl links/list1.txt configurations/valid.config}, verificarea manuală a fișierelor descărcate local și a hărții generate
+    \item precondiții: adăugarea alias-ului specific sistemului de operare
+    \item fișiere de intrare: \mintinline{bash}{links/list1.txt} și \mintinline{bash}{configurations/valid.config}
+    \item fișiere de ieșire: folder-ul \mintinline{bash}{downloads/127.0.0.1/}, populat cu fișiere
+    \item status: rezultat parțial corect, din cauza inexistenței fișierului \mintinline{bash}{images/banner.jpg} ce este referențiat într-un fișier CSS
+\end{itemize}
+
+\subsubsection{Filtrarea Paginilor Salvate Local după o Anumită Extensie}
+
+\begin{itemize}
+    \item tip: manual
+    \item descriere: rularea comenzii \\ \mintinline{bash}{aranea list jpg} și verificarea manuală a corectitudinii rezultatului printat în linie de comandă
+    \item precondiții: adăugarea alias-ului specific sistemului de operare
+    \item fișiere de intrare: fișiere specifice unui website descărcat local
+    \item status: rezultat corect
+\end{itemize}
+
+\vspace{0.3cm}
+\begin{listing}[ht]
+    \begin{minted}{text}
+	[..]
+	127.0.0.1/images/pic01.jpg
+	127.0.0.1/images/pic02.jpg
+	127.0.0.1/images/pic03.jpg
+	127.0.0.1/images/pic04.jpg
+	127.0.0.1/images/pic05.jpg
+	127.0.0.1/images/pic06.jpg
+	[..]
+    \end{minted}
+    \caption{Extras din rezultatul filtrării paginilor salvate local după o anumită extensie}
+    \label{listing:1}
+\end{listing}
+\vspace{0.3cm}
+
+\subsubsection{Căutarea unui Șablon în Paginile Salvate Local}
+
+\begin{itemize}
+    \item tip: manual
+    \item descriere: rularea comenzii \\ \mintinline{bash}{aranea search "Nunc Dignissim"} și verificarea manuală a corectitudinii rezultatului printat în linie de comandă
+    \item precondiții: adăugarea alias-ului specific sistemului de operare
+    \item fișiere de intrare: fișiere specifice unui website descărcat local
+    \item status: rezultat corect
+\end{itemize}
+
+\vspace{0.3cm}
+\begin{listing}[ht]
+    \begin{minted}{text}
+	[..]
+	127.0.0.1/elements.html
+	127.0.0.1/generic.html
+	127.0.0.1/index.html
+	[..]
+    \end{minted}
+    \caption{Extras din rezultatul căutării unui șablon în paginile salvate local}
+    \label{listing:1}
+\end{listing}
+\vspace{0.3cm}
+
+\subsubsection{Solicitarea Ajutorului}
+
+\begin{itemize}
+    \item tip: manual
+    \item descriere: rularea comenzii \\ \mintinline{bash}{aranea help} și verificarea manuală a printării ghidului de utilizare a programului
+    \item precondiții: adăugarea alias-ului specific sistemului de operare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{URLQueue}}
+
+\subsubsection{Metoda \mintinline{bash}{getInstance}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{URLQueueTest:getInstanceTest}
+    \item descriere: verificarea obținerii unei instanțe
+    \item precondiții: inițializarea listei
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{remove}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{URLQueueTest:removeElementFromEmptyList}
+    \item descriere: verificarea extragerii unui element din listă când aceasta este goală
+    \item precondiții: inițializarea listei
+    \item modificări efectuate: verificarea listei goale
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{remove}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{URLQueueTest:removeMoreThanInserted}
+    \item descriere: extragerea unui număr de elemente mai mare decât cel de elemente inserate
+    \item precondiții: inițializarea listei și inserarea de elemente în listă
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{Crawler}}
+
+\subsubsection{Metoda \mintinline{bash}{getSavePath}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:getSavePathWithoutBackslashSaveDir}
+    \item descriere: verificarea comportamentului la un URL formatat greșit, care nu se termina în "\mintinline{bash}{/}"
+    \item precondiții: inițializarea listei de URL-uri și a clasei testate, adăugarea de URL-uri în listă
+    \item modificări efectuate: verificarea formatării corecte a șirurilor de caractere, formatarea lor dacă nu corespund
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{getSavePath}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:getSavePathMalformedURL}
+    \item descriere: verificarea comportamentului la generarea căii de salvare cu URL-uri atipice
+    \item precondiții: inițializarea listei de URL-uri și a clasei testate, adăugarea de URL-uri în listă
+    \item fișiere de ieșire: directoare create
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{downloadNextURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:downloadNextUrlLocalBasic}
+    \item descriere: descărcarea website-ului de pe \mintinline{bash}{localhost} cu un singur fir de execuție
+    \item precondiții: inițializarea listei de URL-uri (cu lungime maximă de 20) și a clasei testate, adăugarea de URL-uri în listă
+    \item fișiere de ieșire: surse ale website-ului descărcat
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{downloadNextURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:downloadNextUrlLocalMultiThreading}
+    \item descriere: descărcarea website-ului de pe \mintinline{bash}{localhost} cu patru fire de execuție
+    \item precondiții: inițializarea listei de URL-uri (cu lungime maximă de 20) și a clasei testate, adăugarea de URL-uri în listă
+    \item fișiere de ieșire: surse ale website-ului descărcat
+    \item modificări efectuate: moduri de inițializare, pornire și așteptare a firelor de execuție
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{downloadNextURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:downloadNextUrlPublicWebsiteBasic}
+    \item descriere: descărcarea unui website de pe Internet cu un fir de execuție
+    \item precondiții: inițializarea listei de URL-uri (cu lungime maximă de 120) și a clasei testate, adăugarea de URL-uri în listă
+    \item fișiere de ieșire: surse ale website-ului descărcat
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{downloadNextURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \\ \mintinline{bash}{CrawlerTest:downloadNextUrlPublicWebsiteMultiThreading}
+    \item descriere: descărcarea unui website de pe Internet cu patru fire de execuție
+    \item precondiții: inițializarea listei de URL-uri (cu lungime maximă de 120) și a clasei testate, adăugarea de URL-uri în listă
+    \item fișiere de ieșire: surse ale website-ului descărcat
+    \item modificări efectuate: modul de salvare a URL-urilor relative în pagina descărcată, inspectarea (și, opțional adăugarea automată a extensiei \mintinline{bash}{.html}) conținutului unei pagini fără extensie
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{downloadNextURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{CrawlerTest:downloadNextUrlSleep}
+    \item descriere: verificarea funcționalității de întârziere a cererilor către website-uri
+    \item precondiții: inițializarea listei de URL-uri și a clasei testate
+    \item modificări efectuate: funcționalitatea de așteptare în cazul în care firul de execuție a extras cu succes un element din lista de URL-uri
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{Sieve}}
+
+\subsubsection{Metoda \mintinline{bash}{getInstance}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:getInstance}
+    \item descriere: verificarea preluării corectă a instanței clasei
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{addIgnoredPages}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:addIgnoredPages}
+    \item descriere: verificarea adăugării corecte a paginilor ignorate
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{checkURL}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:checkURL}
+    \item descriere: verificarea validării unui URL
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{checkContent}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:checkContent}
+    \item descriere: verificarea validării unui URL
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare (inclusiv a șablonului)
+    \item fișiere de intrare: fișier local, pentru verificare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{FailedRequestException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:testcheckURLexceptions}
+    \item descriere: verificarea aruncării unei excepții în cazul unui URL invalid, care nu poate fi accesat
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{FailedFileReadException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SieveTest:testcheckContentexceptions}
+    \item descriere: verificarea aruncării unei excepții în cazul unui fișier invalid
+    \item precondiții: inițializarea clasei și setarea caracteristicilor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{ExtensionFinder}}
+
+\subsubsection{Constructor}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{ExtensionFinderTest:ExtensionFinder}
+    \item descriere: verificarea atribuirii corecte a datelor
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{parse}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{ExtensionFinderTest:parse}
+    \item descriere: verificarea găsirii tuturor fișierelor cu o anumită extensie
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item fișiere de intrare: folder cu fișierele căutate
+    \item status: rezultat corect
+\end{itemize}
+
+\newpage
+
+\vspace{0.3cm}
+\begin{listing}[ht]
+    \begin{minted}{text}
+    [..]
+    D:/fdc@columbia.edu_files/default+en.css
+    D:/fdc@columbia.edu_files/default.css
+    D:/fdc@columbia.edu_files/fdc.css
+    D:/fdc@columbia.edu_files/translateelement.css
+    [..]
+    \end{minted}
+    \caption{Extras din rezultatul afișat în linie de comandă în urma căutării unor fișiere după extensie}
+    \label{listing:1}
+\end{listing}
+\vspace{0.3cm}
+
+\subsubsection{Metoda \mintinline{bash}{processFile}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{ExtensionFinderTest:processFile}
+    \item descriere: verificarea găsirii tuturor fișierelor cu o anumită extensie
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item fișiere de intrare: folder cu fișierele căutate
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{PatternFinder}}
+
+\subsubsection{Constructor}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{PatternFinderTest:PatternFinder}
+    \item descriere: verificarea atribuirii corecte a datelor
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{parse}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{PatternFinderTest:parse}
+    \item descriere: verificarea găsirii tuturor fișierelor care potrivesc un anumit șablon
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item fișiere de intrare: folder cu fișierele căutate
+    \item status: rezultat corect
+\end{itemize}
+
+\vspace{0.3cm}
+\begin{listing}[ht]
+    \begin{minted}{text}
+	[..]
+	D:\fdc@columbia.edu_files\f.txt
+	[..]
+    \end{minted}
+    \caption{Extras din rezultatul afișat în linie de comandă în urma căutării unor fișiere după un șablon}
+    \label{listing:1}
+\end{listing}
+\vspace{0.3cm}
+
+\subsection{Clasa \mintinline{bash}{SitemapGenerator}}
+
+\subsubsection{Constructor}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SitemapGeneratorTest:SitemapGenerator}
+    \item descriere: verificarea atribuirii corecte a datelor
+    \item precondiții: inițializarea clasei testate și setarea atributelor necesare
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{parse}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SitemapGeneratorTest:parse}
+    \item descriere: verificarea creării unei hărți specifice unei structuri de fișiere salvate local
+    \item precondiții: inițializarea clasei testate
+    \item fișiere de intrare: folder cu fișierele căutate
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{CannotWriteException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SitemapGeneratorTest:parse}
+    \item descriere: verificarea aruncării unei excepții 
+    \item precondiții: inițializarea clasei testate
+    \item fișiere de intrare: folder cu fișierele căutate
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{AraneaLogger}}
+
+\subsubsection{Metoda \mintinline{bash}{log}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{AraneaLoggerTest:logAllToFile}
+    \item descriere: verificarea creării unei fișier cu toate evenimentele jurnalizate
+    \item fișiere de ieșire: \mintinline{bash}{out/test/aranea/com/aranea/all_logs.txt}
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Metoda \mintinline{bash}{log}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{AraneaLoggerTest:filteredLogToFile}
+    \item descriere: verificarea creării unei fișier numai cu acele evenimente care au o severitate mai gravă decât una minimă, setată
+    \item fișiere de ieșire: \mintinline{bash}{out/test/aranea/com/aranea/filtered_log.txt}
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{LoggerOpenFileException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{SitemapGeneratorTest:parse}
+    \item descriere: verificarea aruncării unei excepții în cazul în care calea către fișierul ce trebuie creat nu există
+    \item status: rezultat corect
+\end{itemize}
+
+\subsection{Clasa \mintinline{bash}{AraneaConfiguration}}
+
+\subsubsection{Constructor}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{AraneaConfigurationTest:parseValidConfig}
+    \item descriere: verificarea inițializării corecte a clasei testate, prin compararea membrilor clasei cu valorile corecte
+    \item fișiere de intrare: \mintinline{bash}{tests/com/aranea/files/configurations/valid.config}
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{ConfigurationOpenFileException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{AraneaConfigurationTest:detectNonexistentFile}
+    \item descriere: verificarea aruncării unei excepții în cazul în care fișierul de configurare nu există
+    \item status: rezultat corect
+\end{itemize}
+
+\subsubsection{Aruncarea unei Excepții de Tipul \mintinline{bash}{ConfigurationMissingKeysException}}
+
+\begin{itemize}
+    \item tip: unitar, în metoda \mintinline{bash}{AraneaConfigurationTest:detectInvalidConfig}
+    \item descriere: verificarea aruncării unei excepții în cazul în care fișierul de configurare nu conține toate cheile obligatorii
+    \item fișiere de intrare: \mintinline{bash}{tests/com/aranea/files/configurations/invalid.config}
+    \item status: rezultat corect
+\end{itemize}
+
+\end{document}
