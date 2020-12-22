@@ -44,8 +44,8 @@ AJUTOR SUPLIMENAR:
 UȘURAREA UTILIZĂRII:
   Pentru a ușura folosirea acestui utilitar, vă recomandăm să setați un alias
   printr-o comandă specifică sistemului dumneavoastră de operare:
-  - "doskey aranea=java -jar ABSOLUTE_PATH_TO/aranea.jar" pentru Windows
-  - "alias aranea=java -jar ABSOLUTE_PATH_TO/aranea.jar" pentru Linux și macOS.
+  - 'doskey aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar $*"' pentru Windows
+  - 'alias aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar"' pentru Linux și macOS.
 """;
 
   static String crawlHelp = """

@@ -23,7 +23,7 @@ Operațiile disponibile sunt:
 ## Ușurarea Utilizării :gun:
 
 Pentru a ușura folosirea acestui program, vă recomandăm să setați un alias printr-o comandă specifică sistemului dumneavoastră de operare:
-- `doskey aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar"` pentru Windows
+- `doskey aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar $*"` pentru Windows
 - `alias aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar"` pentru Linux și macOS.
 
 De menționat este faptul că fișierul `aranea.jar` poate fi descărcat din secțiunea *Releases* a acestui repository.
