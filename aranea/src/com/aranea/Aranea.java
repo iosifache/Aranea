@@ -351,7 +351,7 @@ public class Aranea {
      */
     public static void main(String[] argv)
             throws AraneaException, MalformedURLException, FileNotFoundException {
-        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+        System.out.println("Directorul de lucru este: " + System.getProperty("user.dir"));
         Aranea aranea = Aranea.getInstance(argv);
     }
 }
