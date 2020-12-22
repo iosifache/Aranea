@@ -19,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Sieve {
-
     private static Sieve sieve = null;
     private List<String> allowedExtensions;
     private List<String> ignoredPages = new ArrayList<>();
@@ -145,11 +144,6 @@ public class Sieve {
 
         Sieve sieve = Sieve.getInstance(extensions, 100000, "Content");
         sieve.addIgnoredPages(ignoredPages);
-    /*try {
-      boolean validURL = sieve.checkURL("http://www.columbia.edu/~fdc/index.html");
-    } catch (FailedRequestException e) {
-      // Log exception
-    }*/
 
         try {
             File file = new File("index.html");

@@ -94,7 +94,6 @@ public class Crawler extends Thread {
 
             if (splitted.length > 1) {
                 output = splitted[1];
-
                 //if the string is relative path we concatenate with the url
                 if (!output.startsWith("#")) {
                     if (!output.startsWith("https://")) {
@@ -449,6 +448,27 @@ public class Crawler extends Thread {
             } catch (Sieve.FailedRequestException e) {
                 e.logException(logger);
             }
+        }
+
+        return newList;
+    }
+
+    //checks the list of urls with sieve
+    private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
+        List<URL> newList = new ArrayList<URL>();
+
+        if (sieveInstance == null) {
+            return currentList;
+        }
+
+        for (URL u : currentList) {
+            try {
+                if (sieveInstance.checkURL(u.toString())) {
+                    newList.add(u);
+                }
+            }catch (Sieve.FailedRequestException e) {
+                e.logException(logger);
+            }
 
         }
 
@@ -500,6 +520,15 @@ public class Crawler extends Thread {
         public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level, String message) {
             super(level, "Error creating the directory" + message);
         }
+
+        try {
+            for (int i = 0; i < 4; i++) {
+                crwList.get(i).join();
+            }
+        } catch (InterruptedException e) {
+            throw new InterruptedAraneaException();
+        }
+
     }
 
     public static class ConnectionAraneaException extends AraneaException {
