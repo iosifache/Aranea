@@ -1,13 +1,9 @@
 package com.aranea;
 
-import com.aranea.AraneaLogger.AraneaLoggerLevels;
-import com.aranea.Crawler.ConnectionAraneaException;
-import com.aranea.Crawler.PageRetrieveAraneaException;
-
+import com.aranea.AraneaException.FailedRequestException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -16,6 +12,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import com.aranea.AraneaLogger.AraneaLoggerLevels;
+import com.aranea.AraneaException.ConfigurationMissingKeysException;
+import com.aranea.AraneaException.ConfigurationOpenFileException;
 
 /**
  * Class implementing the main class of Aranea Project. Class contains instance of each class
@@ -52,8 +51,7 @@ public class Aranea {
      *             generates a WARNING message
      */
     private static void initConfiguration(String file)
-            throws AraneaConfiguration.ConfigurationOpenFileException,
-            AraneaConfiguration.ConfigurationMissingKeysException {
+            throws ConfigurationOpenFileException, ConfigurationMissingKeysException {
         try {
             araneaConfiguration = new AraneaConfiguration(file);
         } catch (AraneaException e) {
@@ -203,7 +201,7 @@ public class Aranea {
      * @throws MalformedURLException if url can be initialised from string
      */
     private static void startCrawling(String file)
-            throws FileNotFoundException, MalformedURLException, Sieve.FailedRequestException, InterruptedException {
+            throws FileNotFoundException, MalformedURLException, FailedRequestException, InterruptedException {
 
         List<String> list = readFileContent(file);
         boolean startCrawlers = false;

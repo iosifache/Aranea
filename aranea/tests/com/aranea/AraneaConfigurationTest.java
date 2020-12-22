@@ -3,8 +3,8 @@ package com.aranea;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import com.aranea.AraneaLogger.AraneaLoggerLevels;
-import com.aranea.AraneaConfiguration.ConfigurationMissingKeysException;
-import com.aranea.AraneaConfiguration.ConfigurationOpenFileException;
+import com.aranea.AraneaException.ConfigurationMissingKeysException;
+import com.aranea.AraneaException.ConfigurationOpenFileException;
 
 class AraneaConfigurationTest {
 

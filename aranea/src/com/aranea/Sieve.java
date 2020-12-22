@@ -1,7 +1,5 @@
 package com.aranea;
 
-import com.aranea.AraneaLogger.AraneaLoggerLevels;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,6 +15,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.aranea.AraneaException.FailedFileReadException;
+import com.aranea.AraneaException.FailedRequestException;
 
 public class Sieve {
     private static Sieve sieve = null;
@@ -29,6 +29,14 @@ public class Sieve {
         this.allowedExtensions = Arrays.asList(allowedExtensions);
         this.maxSize = maxSize;
         this.pattern = pattern;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static Sieve getInstance() {
+        return null;
     }
 
     /**
@@ -152,20 +160,6 @@ public class Sieve {
             // Log exception
         } catch (FailedFileReadException e) {
             // Log exception
-        }
-    }
-
-
-    class FailedRequestException extends AraneaException {
-        public FailedRequestException() {
-            super(AraneaLoggerLevels.ERROR, "Failed creation of a request to target website.");
-        }
-    }
-
-
-    private class FailedFileReadException extends AraneaException {
-        public FailedFileReadException() {
-            super(AraneaLoggerLevels.ERROR, "Failed read from target file.");
         }
     }
 

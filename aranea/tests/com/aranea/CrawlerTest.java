@@ -1,11 +1,9 @@
 package com.aranea;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -13,8 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.aranea.AraneaException.InterruptedAraneaException;
 
 class CrawlerTest {
 
@@ -102,13 +99,13 @@ class CrawlerTest {
         for (String s : allPaths) {
             path = Paths.get(s);
             if (!Files.exists(path)) {
-                Assert.fail("Failed to download resource");
+                Assertions.fail("Failed to download resource");
             }
         }
 
     }
 
-    void runMultiThread(int threadNumber) throws Crawler.InterruptedAraneaException {
+    void runMultiThread(int threadNumber) throws InterruptedAraneaException {
         List<Crawler> crwList = new ArrayList<Crawler>();
 
         for(int i=0; i<threadNumber; i++){
@@ -126,12 +123,12 @@ class CrawlerTest {
             }
         }
         catch (InterruptedException e){
-            throw new Crawler.InterruptedAraneaException();
+            throw new InterruptedAraneaException();
         }
     }
     //multithreading testing with local hosted website
     @Test
-    void downloadNextUrlLocalMultiThreading() throws MalformedURLException, Crawler.InterruptedAraneaException {
+    void downloadNextUrlLocalMultiThreading() throws MalformedURLException, InterruptedAraneaException {
 
         q.add(new URL("http://10.0.0.1/"));
 
@@ -143,14 +140,14 @@ class CrawlerTest {
         for (String s : allPaths) {
             path = Paths.get(s);
             if (!Files.exists(path)) {
-                Assert.fail("Failed to download resource");
+                Assertions.fail("Failed to download resource");
             }
         }
     }
 
     //mutithreading test with online website
     @Test
-    void downloadNextUrlPublicWebsiteMultiThreading() throws MalformedURLException, Crawler.InterruptedAraneaException {
+    void downloadNextUrlPublicWebsiteMultiThreading() throws MalformedURLException, InterruptedAraneaException {
         //queue size 50
         q.add(new URL("https://w3schools.com"));
 
@@ -161,7 +158,7 @@ class CrawlerTest {
         for (String s : allPaths) {
             path = Paths.get(s);
             if (!Files.exists(path)) {
-                Assert.fail("Failed to download resource for file: " + path.toString());
+                Assertions.fail("Failed to download resource for file: " + path.toString());
             }
         }
 
@@ -183,7 +180,7 @@ class CrawlerTest {
         for (String s : allPaths) {
             path = Paths.get(s);
             if (!Files.exists(path)) {
-                Assert.fail("Failed to download resource");
+                Assertions.fail("Failed to download resource");
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.aranea;
 
 import com.aranea.AraneaLogger.AraneaLoggerLevels;
-import com.aranea.AraneaLogger.LoggerOpenFileException;
+import com.aranea.AraneaException.LoggerOpenFileException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

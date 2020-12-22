@@ -1,9 +1,11 @@
 package com.aranea;
 
-import com.aranea.AraneaLogger.AraneaLoggerLevels;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import com.aranea.AraneaLogger.AraneaLoggerLevels;
+import com.aranea.AraneaException.ConfigurationMissingKeysException;
+import com.aranea.AraneaException.ConfigurationOpenFileException;
 
 /* Class for working with configuration files */
 public class AraneaConfiguration {
@@ -145,21 +147,6 @@ public class AraneaConfiguration {
    */
   public boolean isSkipRobotsdottxtFiles() {
     return this.skipRobotsdottxtFiles;
-  }
-
-  /* Exception thrown if configuration file cannot be opened */
-  public static class ConfigurationOpenFileException extends AraneaException {
-    public ConfigurationOpenFileException() {
-      super(AraneaLoggerLevels.ERROR, "The configuration file could not be opened.");
-    }
-  }
-
-  /* Exception thrown if configuration file misses mandatory keys */
-  static class ConfigurationMissingKeysException extends AraneaException {
-    public ConfigurationMissingKeysException() {
-      super(
-          AraneaLoggerLevels.ERROR, "The configuration file does not contains all mandatory keys.");
-    }
   }
 
   /* Function to exemplify the usage */

@@ -1,5 +1,6 @@
 package com.aranea;
 
+import com.aranea.AraneaException.FailedRequestException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -15,6 +16,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.aranea.AraneaException.ConnectionAraneaException;
+import com.aranea.AraneaException.CreateDirecoryAraneaException;
+import com.aranea.AraneaException.InsertFailAraneaException;
+import com.aranea.AraneaException.InterruptedAraneaException;
+import com.aranea.AraneaException.InterruptedSleepAraneaException;
+import com.aranea.AraneaException.MalformedURLAraneaException;
+import com.aranea.AraneaException.PageRetrieveAraneaException;
+import com.aranea.AraneaException.RemoveFailAraneaException;
+import com.aranea.AraneaException.UnsuccessfullResponseAraneaException;
+import com.aranea.AraneaException.WriteToFileAraneaException;
+
 /**
  * Class implementing the crawling functionality of Aranea Project
  *
@@ -431,9 +443,9 @@ public class Crawler extends Thread {
      *
      * @param currentList extracted links
      * @return the filtered list
-     * @throws Sieve.FailedRequestException
+     * @throws FailedRequestException
      */
-    private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
+    private List<URL> checkSieve(List<URL> currentList) throws FailedRequestException {
         List<URL> newList = new ArrayList<URL>();
 
         if (sieveInstance == null) {
@@ -445,31 +457,9 @@ public class Crawler extends Thread {
                 if (sieveInstance.checkURL(u.toString())) {
                     newList.add(u);
                 }
-            } catch (Sieve.FailedRequestException e) {
+            } catch (FailedRequestException e) {
                 e.logException(logger);
             }
-        }
-
-        return newList;
-    }
-
-    //checks the list of urls with sieve
-    private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
-        List<URL> newList = new ArrayList<URL>();
-
-        if (sieveInstance == null) {
-            return currentList;
-        }
-
-        for (URL u : currentList) {
-            try {
-                if (sieveInstance.checkURL(u.toString())) {
-                    newList.add(u);
-                }
-            }catch (Sieve.FailedRequestException e) {
-                e.logException(logger);
-            }
-
         }
 
         return newList;
@@ -513,76 +503,6 @@ public class Crawler extends Thread {
             throw new InterruptedAraneaException();
         }
 
-    }
-
-    //exceptions
-    public static class CreateDirecoryAraneaException extends AraneaException {
-        public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level, String message) {
-            super(level, "Error creating the directory" + message);
-        }
-
-        try {
-            for (int i = 0; i < 4; i++) {
-                crwList.get(i).join();
-            }
-        } catch (InterruptedException e) {
-            throw new InterruptedAraneaException();
-        }
-
-    }
-
-    public static class ConnectionAraneaException extends AraneaException {
-        public ConnectionAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Error opening connection");
-        }
-    }
-
-    public static class PageRetrieveAraneaException extends AraneaException {
-        public PageRetrieveAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Error retrieving the page");
-        }
-    }
-
-    public static class WriteToFileAraneaException extends AraneaException {
-        public WriteToFileAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Error writing content to the directory");
-        }
-    }
-
-    public static class UnsuccessfullResponseAraneaException extends AraneaException {
-        public UnsuccessfullResponseAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "The response was not sucesfull");
-        }
-    }
-
-    public static class InsertFailAraneaException extends AraneaException {
-        public InsertFailAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Failed to insert in URLQueue");
-        }
-    }
-
-    public static class RemoveFailAraneaException extends AraneaException {
-        public RemoveFailAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Failed to remove from URLQueue");
-        }
-    }
-
-    public static class InterruptedAraneaException extends AraneaException {
-        public InterruptedAraneaException() {
-            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Interrupted Thread Excetption");
-        }
-    }
-
-    public static class MalformedURLAraneaException extends AraneaException {
-        public MalformedURLAraneaException() {
-            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Malformed URL");
-        }
-    }
-
-    public static class InterruptedSleepAraneaException extends AraneaException {
-        public InterruptedSleepAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "Sleep was interrupted");
-        }
     }
 
 }

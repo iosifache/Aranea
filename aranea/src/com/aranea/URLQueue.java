@@ -3,6 +3,7 @@ package com.aranea;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import com.aranea.AraneaException.UninitializedQueueAraneaException;
 
 /**
  * Class implementing the URLQueue class of Aranea project.
@@ -81,12 +82,6 @@ public class URLQueue {
     public void add(URL new_url) {
         synchronized (this) {
             urlSet.add(new_url);
-        }
-    }
-
-    public class UninitializedQueueAraneaException extends AraneaException {
-        public UninitializedQueueAraneaException(AraneaLogger.AraneaLoggerLevels level) {
-            super(level, "UrlQueue is not initialized");
         }
     }
 }

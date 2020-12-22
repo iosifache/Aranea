@@ -12,7 +12,6 @@ class PatternFinderTest {
     @Test
     void PatternFinder() {
         PatternFinder parr = new PatternFinder("D:\\fdc@columbia.edu_files","a instanceof D&&a.constructor");
-        assertEquals("css", parr.getPattern());
         assertEquals(Paths.get("D:\\fdc@columbia.edu_files"), parr.getFolderPath());
     }
     @Test

@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import com.aranea.AraneaException.CannotOpenException;
+import com.aranea.AraneaException.CannotWriteException;
 
 public class SitemapGenerator extends FolderParser {
 
@@ -32,7 +34,7 @@ public class SitemapGenerator extends FolderParser {
                     .forEach(this::processFile);
             printToOutputFile();
         } catch (Exception e) {
-            throw new FolderParser.CannotOpenException();
+            throw new CannotOpenException();
         }
 
     }
@@ -120,11 +122,5 @@ public class SitemapGenerator extends FolderParser {
                 }
             }
         });
-    }
-
-    public class CannotWriteException extends AraneaException {
-        public CannotWriteException() {
-            super(AraneaLogger.AraneaLoggerLevels.ERROR, "Cannot write to file.");
-        }
     }
 }

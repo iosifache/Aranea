@@ -32,10 +32,4 @@ public abstract class FolderParser {
         return folderPath;
     }
 
-    public class CannotOpenException extends AraneaException {
-        public CannotOpenException() {
-            super(AraneaLogger.AraneaLoggerLevels.ERROR, "The File cannot be opened.");
-        }
-    }
-
 }

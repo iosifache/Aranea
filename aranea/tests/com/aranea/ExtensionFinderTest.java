@@ -16,7 +16,6 @@ class ExtensionFinderTest {
     void ExtensionFinder() {
         ExtensionFinder ext = new ExtensionFinder("D:\\fdc@columbia.edu_files","css");
         assertEquals(Paths.get("D:\\fdc@columbia.edu_files"), ext.getFolderPath());
-        assertEquals("css", ext.getExtension());
     }
 
     @Test

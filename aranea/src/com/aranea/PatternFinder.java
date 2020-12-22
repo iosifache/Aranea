@@ -1,10 +1,8 @@
 package com.aranea;
 
-
-import com.aranea.FolderParser.CannotOpenException;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.aranea.AraneaException.CannotOpenException;
 
 public class PatternFinder extends FolderParser {
 
@@ -29,7 +27,7 @@ public class PatternFinder extends FolderParser {
                     .filter(this::processFile)   // Filter them by the searched extension
                     .forEach(System.out::println);             // Print the filtered collection
         } catch (Exception e) {
-            throw new FolderParser.CannotOpenException();
+            throw new CannotOpenException();
         }
 
     }

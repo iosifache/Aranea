@@ -1,5 +1,6 @@
 package com.aranea;
 
+import com.aranea.AraneaException.LoggerOpenFileException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -157,13 +158,6 @@ public class AraneaLogger {
     @Override
     public boolean isLoggable(LogRecord record) {
       return record.getLevel().intValue() >= minLevel.intValue();
-    }
-  }
-
-  /* Exception thrown if file cannot be opened */
-  static public class LoggerOpenFileException extends AraneaException {
-    public LoggerOpenFileException() {
-      super(AraneaLoggerLevels.CRITICAL, "The log file could not be opened.");
     }
   }
 

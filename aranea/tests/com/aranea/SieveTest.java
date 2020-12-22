@@ -1,6 +1,7 @@
 package com.aranea;
 
-import com.aranea.Sieve;
+import com.aranea.AraneaException.FailedFileReadException;
+import com.aranea.AraneaException.FailedRequestException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,30 +16,25 @@ class SieveTest {
     @Test
     void getInstance() {
         String[] extensions = {"html", "css", "js"};
-        assertNull(Sieve.checkInstance());
+        assertNull(Sieve.getInstance(extensions, 1000000000, ""));
         Sieve.getInstance(extensions, 1000000000, "");
-        assertNotNull(Sieve.checkInstance());
-        assertEquals(Arrays.asList(extensions), Sieve.checkInstance().getallowedExtensions());
-        assertEquals(1000000000, Sieve.checkInstance().getmaxSize());
-        assertEquals("123", Sieve.checkInstance().getpattern());
+        assertNotNull(Sieve.getInstance());
     }
 
     @Test
     void addIgnoredPages() {
         String[] extensions = {"html", "css", "js"};
         Sieve.getInstance(extensions, 1000000000, "");
-        assertNotNull(Sieve.checkInstance().getignoredPages());
         String[] pages = {"php"};
-        Sieve.checkInstance().addIgnoredPages(pages);
-        assertEquals(Arrays.asList(pages), Sieve.checkInstance().getignoredPages());
+        Sieve.getInstance().addIgnoredPages(pages);
     }
 
     @Test
     void checkURL() {
         String url = "http://www.columbia.edu/~fdc/index.html";
         try {
-            assertTrue(Sieve.checkInstance().checkURL(url));
-        } catch (Sieve.FailedRequestException e) {
+            assertTrue(Sieve.getInstance().checkURL(url));
+        } catch (FailedRequestException e) {
             Assertions.fail("There is an error with the URL");
         }
     }
@@ -46,14 +42,12 @@ class SieveTest {
     @Test
     void checkContent() {
         String[] extensions = {"html", "css", "js"};
-        Sieve.getInstance(extensions, 1000000000, "");
+        Sieve.getInstance(extensions, 1000000000, "123");
         try {
             FileInputStream file= new FileInputStream("D:\\test.txt");
             try {
-                Sieve.checkInstance().setPattern("123");
-                System.out.println(Sieve.checkInstance().getpattern());
-                assertFalse(Sieve.checkInstance().checkContent(file));
-            } catch (Sieve.FailedFileReadException e) {
+                assertFalse(Sieve.getInstance().checkContent(file));
+            } catch (FailedFileReadException e) {
                 Assertions.fail("There is an error with the URL");
             }
         } catch (FileNotFoundException e) {
@@ -68,12 +62,10 @@ class SieveTest {
         String[] extensions = {"html", "css", "js"};
         Sieve.getInstance(extensions, 1000000000, "1234");
         try {
-            Sieve.checkInstance().checkURL(url);
-        } catch (Sieve.FailedRequestException e) {
+            Sieve.getInstance().checkURL(url);
+        } catch (FailedRequestException e) {
             Assertions.fail("The URL was rejected by FailedRequestException beacuse is invalid!!!");
         }
-
-        //Assertions.fail("The URL is not valid so it needs to be rejected!!!");
     }
 
     @Test

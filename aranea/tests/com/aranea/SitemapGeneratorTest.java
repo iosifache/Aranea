@@ -1,5 +1,6 @@
 package com.aranea;
 
+import com.aranea.AraneaException.CannotWriteException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,6 @@ class SitemapGeneratorTest {
     void SitemapGenerator() {
         SitemapGenerator site = new SitemapGenerator("D:\\fdc@columbia.edu_files", "D:\\SiteMap");
         assertEquals(Paths.get("D:\\fdc@columbia.edu_files"), site.getFolderPath());
-        assertEquals(Paths.get("D:\\SiteMap"), site.getPath());
     }
 
     @Test
@@ -45,11 +45,6 @@ class SitemapGeneratorTest {
             site.parse();
         } catch (AraneaException e) {
             Assertions.fail("Error while parsing!!!");
-        }
-        try {
-            site.printToOutputFile();
-        } catch (SitemapGenerator.CannotWriteException e) {
-            Assertions.fail("Error writing to file!!!");
         }
     }
 

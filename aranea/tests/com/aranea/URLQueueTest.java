@@ -1,5 +1,6 @@
 package com.aranea;
 
+import com.aranea.AraneaException.UninitializedQueueAraneaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class URLQueueTest {
     void removeElementFromEmptyList() {
         try {
             q.remove();
-        } catch (URLQueue.UninitializedQueueAraneaException e) {
+        } catch (UninitializedQueueAraneaException e) {
             Assertions.fail("URLQueue is empty");
         }
     }
@@ -49,7 +50,7 @@ class URLQueueTest {
             for (int i = 0; i < 5; i++) {
                 q.remove();
             }
-        } catch (URLQueue.UninitializedQueueAraneaException e) {
+        } catch (UninitializedQueueAraneaException e) {
             Assertions.fail("Removed Failed");
         }
     }
