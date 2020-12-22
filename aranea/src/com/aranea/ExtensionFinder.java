@@ -9,12 +9,18 @@ public class ExtensionFinder extends FolderParser {
 
     private final String searchedExtension;
 
+    /**
+     * @param folderPath
+     * @param searchedExtension
+     */
     public ExtensionFinder(String folderPath, String searchedExtension) {
         super(folderPath);
         this.searchedExtension = searchedExtension;
     }
 
-
+    /**
+     * @throws AraneaException
+     */
     @Override
     public void parse() throws AraneaException {
         try {
@@ -27,6 +33,10 @@ public class ExtensionFinder extends FolderParser {
 
     }
 
+    /**
+     * @param path
+     * @return
+     */
     protected boolean processFile(Path path) {
         return path.toString().trim().endsWith(searchedExtension);
     }

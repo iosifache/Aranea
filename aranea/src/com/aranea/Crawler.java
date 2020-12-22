@@ -15,11 +15,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/**
+ * Class implementing the crawling functionality of Aranea Project
+ *
+ * The main functionality of the class if retrieving HHTPS response,
+ * converting url to relative paths and saving the response in a file.
+ *
+ * @author Apostolescu Stefan
+ */
 public class Crawler extends Thread {
 
     public static int counter = 0;
-    //test variable
     public static int TestCounter;
     private static Pattern relativePattern;
     private static Pattern pattern;
@@ -48,7 +54,14 @@ public class Crawler extends Thread {
         relativePattern = Pattern.compile(urlRelative, Pattern.CASE_INSENSITIVE);
     }
 
-    //finds urls contained in the parsed response
+    /**
+     * Finds and extacts urls from the response
+     *
+     * @param urlResponse stringBuffer response
+     * @param scrapUrl the url that has been scrapped
+     * @param untouchedUrl will contain urls inside src or href
+     * @return a list of extracted links
+     */
     private static List<URL> extractUrls(StringBuffer urlResponse, URL scrapUrl, Set<String> untouchedUrl) throws AraneaException {
         URL strUrl = null;
         String output;
@@ -108,7 +121,12 @@ public class Crawler extends Thread {
         return containedUrls;
     }
 
-    //generates and creates the directories where the content will be saved
+    /**
+     * generates and creates the directories where the content will be saved
+     * @param url the extracted URL
+     * @return the path to the save directory
+     * @throws AraneaException
+     */
     synchronized public static String getSavePath(URL url) throws AraneaException {
 
         String hostName;
@@ -155,6 +173,11 @@ public class Crawler extends Thread {
         return finalPath;
     }
 
+    /**
+     * Overrides Thread run method
+     *
+     * Implements multithreading.
+     */
     public void run() {
         boolean check, previousCheck;
 
@@ -202,7 +225,12 @@ public class Crawler extends Thread {
         }
     }
 
-    //call it with "." to save to current directory
+    /**
+     * The main method of the crawler.
+     * Pops url from URLQueue, retrieves HTTPS response,
+     * and calls method for formatting and saving the answer
+     * @throws AraneaException
+     */
     public boolean downloadNextUrl() throws AraneaException {
 
         int responseCode;
@@ -228,7 +256,7 @@ public class Crawler extends Thread {
             return false;
         }
 
-        if (sieveInstance != null ) {
+        if (sieveInstance != null) {
             if (!sieveInstance.checkURL(scrapUrl.toString()))
                 return true;
         }
@@ -311,7 +339,14 @@ public class Crawler extends Thread {
         return true;
     }
 
-    //is supposed to replace URL with local reference - doesn't work as supposed
+    /**
+     * Replaces URLs with local references
+     *
+     * @param response the HTTPS response
+     * @param LoL list of links to be replaced
+     * @param untouchedUrl links of links contained in href, src
+     * @return replaced response
+     */
     private String replaceToLocal(StringBuffer response, List<URL> LoL, Set<String> untouchedUrl) {
         //LoL - List of Links :D
         int intIndex;
@@ -359,7 +394,13 @@ public class Crawler extends Thread {
         return finalResponse;
     }
 
-    //writes response to file path
+    /**
+     * Writes response to file
+     * @param response  the HTTPS modified response
+     * @param path saving path
+     * @throws AraneaException
+     */
+
     private void saveResponse(String response, String path) throws AraneaException {
         Path checkFile = Paths.get(path);
 
@@ -383,6 +424,33 @@ public class Crawler extends Thread {
                 throw new WriteToFileAraneaException(AraneaLogger.AraneaLoggerLevels.ERROR);
             }
         }
+    }
+
+    /**
+     * Checks the list of URLs against the sieve
+     *
+     * @param currentList extracted links
+     * @return the filtered list
+     * @throws Sieve.FailedRequestException
+     */
+    private List<URL> checkSieve(List<URL> currentList) throws Sieve.FailedRequestException {
+        List<URL> newList = new ArrayList<URL>();
+
+        if (sieveInstance == null) {
+            return currentList;
+        }
+
+        for (URL u : currentList) {
+            try {
+                if (sieveInstance.checkURL(u.toString())) {
+                    newList.add(u);
+                }
+            } catch (Sieve.FailedRequestException e) {
+                e.logException(logger);
+            }
+        }
+
+        return newList;
     }
 
     //checks the list of urls with sieve
@@ -447,13 +515,22 @@ public class Crawler extends Thread {
 
     }
 
+    //exceptions
     public static class CreateDirecoryAraneaException extends AraneaException {
         public CreateDirecoryAraneaException(AraneaLogger.AraneaLoggerLevels level, String message) {
             super(level, "Error creating the directory" + message);
         }
+
+        try {
+            for (int i = 0; i < 4; i++) {
+                crwList.get(i).join();
+            }
+        } catch (InterruptedException e) {
+            throw new InterruptedAraneaException();
+        }
+
     }
 
-    //exceptions
     public static class ConnectionAraneaException extends AraneaException {
         public ConnectionAraneaException(AraneaLogger.AraneaLoggerLevels level) {
             super(level, "Error opening connection");
