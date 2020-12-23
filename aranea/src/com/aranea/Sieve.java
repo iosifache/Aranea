@@ -79,7 +79,6 @@ public class Sieve {
             if (!hasRightExtension) return false;
         }
 
-        //return  true;
         return this.getFileSize(url) <= this.maxSize;
 
     }

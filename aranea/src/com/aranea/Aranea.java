@@ -51,7 +51,7 @@ public class Aranea {
      *             generates a WARNING message
      */
     private static void initConfiguration(String file)
-            throws ConfigurationOpenFileException, ConfigurationMissingKeysException {
+        throws ConfigurationOpenFileException, ConfigurationMissingKeysException {
         try {
             araneaConfiguration = new AraneaConfiguration(file);
         } catch (AraneaException e) {
@@ -72,10 +72,10 @@ public class Aranea {
      */
     private static void initSieve() throws AraneaException {
         sieve =
-                Sieve.getInstance(
-                        araneaConfiguration.getAllowedExtensions(),
-                        araneaConfiguration.getAllowedMaxSize(),
-                        araneaConfiguration.getAllowedPattern());
+            Sieve.getInstance(
+                araneaConfiguration.getAllowedExtensions(),
+                araneaConfiguration.getAllowedMaxSize(),
+                araneaConfiguration.getAllowedPattern());
     }
 
     /**
@@ -178,7 +178,7 @@ public class Aranea {
             int responseCode = con.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(
-                        con.getInputStream()));
+                    con.getInputStream()));
                 String inputLine;
                 List<String> ignoredPages = new ArrayList<String>();
                 while ((inputLine = in.readLine()) != null) {
@@ -201,7 +201,7 @@ public class Aranea {
      * @throws MalformedURLException if url can be initialised from string
      */
     private static void startCrawling(String file)
-            throws FileNotFoundException, MalformedURLException, FailedRequestException, InterruptedException {
+        throws FileNotFoundException, MalformedURLException, FailedRequestException, InterruptedException {
 
         List<String> list = readFileContent(file);
         boolean startCrawlers = false;
@@ -215,11 +215,11 @@ public class Aranea {
         List<Crawler> crawlers = new ArrayList<Crawler>(araneaConfiguration.getMaxThreads());
         for (int i = 0; i < araneaConfiguration.getMaxThreads(); i++) {
             Thread currentCrawler = new Crawler(araneaConfiguration.getDownloadDir(),
-                    USER_AGENT,
-                    sieve,
-                    araneaConfiguration.getMaxThreads(),
-                    araneaConfiguration.getDelay());
-            currentCrawler.run();
+                USER_AGENT,
+                sieve,
+                araneaConfiguration.getMaxThreads(),
+                araneaConfiguration.getDelay());
+            currentCrawler.start();
             crawlers.add((Crawler) currentCrawler);
         }
 
@@ -350,7 +350,7 @@ public class Aranea {
      * Main class
      */
     public static void main(String[] argv)
-            throws AraneaException, MalformedURLException, FileNotFoundException {
+        throws AraneaException, MalformedURLException, FileNotFoundException {
         System.out.println("Directorul de lucru este: " + System.getProperty("user.dir"));
         Aranea aranea = Aranea.getInstance(argv);
     }

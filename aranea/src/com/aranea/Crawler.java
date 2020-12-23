@@ -38,6 +38,7 @@ import com.aranea.AraneaException.WriteToFileAraneaException;
 public class Crawler extends Thread {
 
     public static int counter = 0;
+    public static boolean isCounterInited = false;
     public static int TestCounter;
     private static Pattern relativePattern;
     private static Pattern pattern;
@@ -54,7 +55,12 @@ public class Crawler extends Thread {
         finalDirectory = saveDirectory;
         urlQueue = URLQueue.getInstance(20);
         logger = AraneaLogger.getInstance();
-        counter = ThreadNumbers;
+        synchronized (this) {
+            if (!isCounterInited){
+                counter = ThreadNumbers;
+                isCounterInited = true;
+            }
+        }
         userAgent = usedUserAgent;
         sleepTime = initializeSleep;
         sieveInstance = usedSieveInstance;

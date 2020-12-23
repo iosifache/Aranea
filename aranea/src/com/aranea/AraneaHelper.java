@@ -19,18 +19,18 @@ public class AraneaHelper {
 
   static String genericHelp = """
 DESCRIERE:
-  Aranea este un crawler web ce pune la dispoziția utilizatorilor, printr-o
-  interfață în linie de comandă, o serie de operații utile descărcării locale a
-  paginilor web și a procesării lor:
-  - executarea crawling-ului pe mai multe fire de execuție asupra unei serii
-  de website-uri aflate la distanță
-  - generarea de hărți pentru website-urile descărcate
-  - filtrarea paginilor salvate local după o anumită extensie
-  - căutarea unui șablon în paginile salvate local
+  Aranea este un crawler web ce pune la dispozitia utilizatorilor, printr-o
+  interfata in linie de comanda, o serie de operatii utile descarcarii locale a
+  paginilor web si a procesarii lor:
+  - executarea crawling-ului pe mai multe fire de executie asupra unei serii
+  de website-uri aflate la distanta
+  - generarea de harti pentru website-urile descarcate
+  - filtrarea paginilor salvate local dupa o anumita extensie
+  - cautarea unui sablon in paginile salvate local
   - solicitarea ajutorului.
 
-OPERAȚII DISPONIBILE
-  Operațiile disponibile sunt:
+OPERATII DISPONIBILE
+  Operatiile disponibile sunt:
   - "crawl"
   - "list"
   - "search"
@@ -38,14 +38,14 @@ OPERAȚII DISPONIBILE
   - "help".
 
 AJUTOR SUPLIMENAR:
-  Utilizați "aranea help COMMAND" pentru vizualizarea mai multor detalii despre
-  o anumită comandă.
+  Utilizati "aranea help COMMAND" pentru vizualizarea mai multor detalii despre
+  o anumita comanda.
 
-UȘURAREA UTILIZĂRII:
-  Pentru a ușura folosirea acestui utilitar, vă recomandăm să setați un alias
-  printr-o comandă specifică sistemului dumneavoastră de operare:
+USURAREA UTILIZARII:
+  Pentru a usura folosirea acestui utilitar, va recomandam sa setati un alias
+  printr-o comanda specifica sistemului dumneavoastra de operare:
   - 'doskey aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar $*"' pentru Windows
-  - 'alias aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar"' pentru Linux și macOS.
+  - 'alias aranea="java -jar ABSOLUTE_PATH_TO/aranea.jar"' pentru Linux si macOS.
 """;
 
   static String crawlHelp = """
@@ -53,33 +53,33 @@ COMENZI:
   crawl URLS_FILE CONFIG_FILE
 
 UTILIZARE:
-  Descarcă conținutului unor website-uri listate într-un fișier (URLS_FILE),pe
-  baza unui alt fișier, de configurare (CONFIG_FILE).
+  Descarca continutului unor website-uri listate intr-un fisier (URLS_FILE),pe
+  baza unui alt fisier, de configurare (CONFIG_FILE).
 
-FORMATUL FIȘIERULUI DE CONFIGURARE:
-  Fișierul de tip CONFIG_FILE setează configurația inițială a programului,
+FORMATUL FISIERULUI DE CONFIGURARE:
+  Fisierul de tip CONFIG_FILE seteaza configuratia initiala a programului,
   prin intermediul anumitor chei:
-  - "download_dir", șir de caractere pentru directorul de descărcare
-  - "log_file", șir de caractere pentru fișierul de jurnal
-  - "log_level", întreg pentru prioritatea minimă a unui eveniment pentru a fi\s
-    jurnalizat (opțional, implicit 0)
-  - "is_sitemap_generated", boolean care indică dacă se vor genera hărți pentru\s
-    website-urile descărcate (opțional, implicit "true")
-  - "max_threads", întreg pentru numărul maxim de fire de execuție (opțional,
+  - "download_dir", sir de caractere pentru directorul de descarcare
+  - "log_file", sir de caractere pentru fisierul de jurnal
+  - "log_level", intreg pentru prioritatea minima a unui eveniment pentru a fi\s
+    jurnalizat (optional, implicit 0)
+  - "is_sitemap_generated", boolean care indica daca se vor genera harti pentru\s
+    website-urile descarcate (optional, implicit "true")
+  - "max_threads", intreg pentru numarul maxim de fire de executie (optional,
     implicit 1000)
-  - "delay", numărul de secunde între două cereri consecutive către un server
-    web țintă (opțional, implicit 1)
-  - "allowed_extensions", șir de caractere pentru extensii ale fișierelor ce
-     vor fi descărcate, separate prin virgulă (opțional, implicit "*")
-  - "allowed_max_size", întreg pentru dimensiunea maximă, în octeți, avută de
-    un fișier ce va fi descărcat (opțional, implicit 1000000000)
-  - "allowed_pattern", șir de caractere pentru un șablon Regex ce trebuie să se
-    regăsească într-un fișier pentru a fi descărcat (opțional, implicit "")
-  - "skip_robotsdottxt_files", boolean care indică dacă fișierele menționate în
-    robots.txt} nu vor fi descărcate (opțional, implicit "true").
-  Conform cu formatul standard al unui fișier de proprietăți, pe care fișierele
-  de configurare îl respectă, fiecărei chei îi corespunde o valoare. Perechile
-  chei-valoare trebuiesc separate între ele prin linie nouă.
+  - "delay", numarul de secunde intre doua cereri consecutive catre un server
+    web tinta (optional, implicit 1)
+  - "allowed_extensions", sir de caractere pentru extensii ale fisierelor ce
+     vor fi descarcate, separate prin virgula (optional, implicit "*")
+  - "allowed_max_size", intreg pentru dimensiunea maxima, in octeti, avuta de
+    un fisier ce va fi descarcat (optional, implicit 1000000000)
+  - "allowed_pattern", sir de caractere pentru un sablon Regex ce trebuie sa se
+    regaseasca intr-un fisier pentru a fi descarcat (optional, implicit "")
+  - "skip_robotsdottxt_files", boolean care indica daca fisierele mentionate in
+    robots.txt} nu vor fi descarcate (optional, implicit "true").
+  Conform cu formatul standard al unui fisier de proprietati, pe care fisierele
+  de configurare il respecta, fiecarei chei ii corespunde o valoare. Perechile
+  chei-valoare trebuiesc separate intre ele prin linie noua.
 """;
 
 
@@ -88,7 +88,7 @@ COMENZI:
   list EXTENSION
 
 UTILIZARE:
-  Filtrează paginile salvate local, aparținând unor website-uri, după extensie
+  Filtreaza paginile salvate local, apartinand unor website-uri, dupa extensie
   (EXTENSION).
 """;
 
@@ -97,7 +97,7 @@ COMENZI:
   search PATTERN
 
 UTILIZARE:
-  Caută un șablon (PATTERN) în paginile descărcate local, aparținând unor
+  Cauta un sablon (PATTERN) in paginile descarcate local, apartinand unor
   website-uri.
 """;
 
@@ -106,7 +106,7 @@ COMENZI:
   interactive
 
 UTILIZARE:
-  Utilizează utilizarul în modul interactiv.
+  Utilizeaza utilizarul in modul interactiv.
 """;
 
   static String helpHelp = """
@@ -115,7 +115,7 @@ COMENZI:
   help COMMAND
 
 UTILIZARE:
-  Solicită ajutorul cu privire la utilizarea programului sau a unei comenzi
+  Solicita ajutorul cu privire la utilizarea programului sau a unei comenzi
   anume (COMMAND).
 """;
 

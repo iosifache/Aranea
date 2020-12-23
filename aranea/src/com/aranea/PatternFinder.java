@@ -3,6 +3,8 @@ package com.aranea;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.aranea.AraneaException.CannotOpenException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PatternFinder extends FolderParser {
 
@@ -38,9 +40,10 @@ public class PatternFinder extends FolderParser {
      */
     protected boolean processFile(Path path) {
         try {
+            Pattern patternObject = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
             return Files.readAllLines(path)
                     .stream()
-                    .anyMatch(line -> line.contains(pattern));
+                    .anyMatch(line -> patternObject.matcher(line).find());
         } catch (Exception e) {
             return false;
         }
