@@ -31,7 +31,7 @@ class CrawlerTest {
         q = URLQueue.getInstance(queueLen);
         urlList = new ArrayList<URL>();
         limitURLlist = new ArrayList<URL>();
-        testCrawler = new Crawler(saveDir, "Aranea", null, 1, waitingTime);
+        testCrawler = new Crawler(saveDir, "Aranea", null, 1, waitingTime, 20);
     }
 
     //TEST getSavePath()
@@ -109,7 +109,7 @@ class CrawlerTest {
         List<Crawler> crwList = new ArrayList<Crawler>();
 
         for(int i=0; i<threadNumber; i++){
-            Crawler crw = new Crawler(saveDir, "Aranea", null, threadNumber, waitingTime);
+            Crawler crw = new Crawler(saveDir, "Aranea", null, threadNumber, waitingTime, 20);
             crwList.add(crw);
         }
 
@@ -168,7 +168,7 @@ class CrawlerTest {
     @Test
     void downloadNextUrlPublicWebsiteBasic() throws MalformedURLException, InterruptedException {
 
-        testCrawler = new Crawler(saveDir, "AraneaBot", null, 1, 0);
+        testCrawler = new Crawler(saveDir, "AraneaBot", null, 1, 0, 20);
         q.add(new URL("https://www.w3schools.com/"));
 
         testCrawler.run();
@@ -195,7 +195,7 @@ class CrawlerTest {
         q.add(new URL("https://www.guru99.com/junit-test-framework.html"));
 
         long startTime = System.currentTimeMillis();
-        testCrawler = new Crawler(saveDir, "AraneaBot", null, 1, 0);
+        testCrawler = new Crawler(saveDir, "AraneaBot", null, 1, 0, 20);
         testCrawler.run();
         long endTime = System.currentTimeMillis();
 

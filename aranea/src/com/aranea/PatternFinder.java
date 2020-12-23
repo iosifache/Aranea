@@ -3,7 +3,6 @@ package com.aranea;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.aranea.AraneaException.CannotOpenException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PatternFinder extends FolderParser {

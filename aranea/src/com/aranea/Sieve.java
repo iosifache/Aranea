@@ -1,14 +1,9 @@
 package com.aranea;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -24,11 +19,13 @@ public class Sieve {
     private List<String> ignoredPages = new ArrayList<>();
     private String pattern;
     private final int maxSize;
+    private boolean headRequests;
 
-    private Sieve(String[] allowedExtensions, int maxSize, String pattern) {
+    private Sieve(String[] allowedExtensions, int maxSize, String pattern, boolean headRequests) {
         this.allowedExtensions = Arrays.asList(allowedExtensions);
         this.maxSize = maxSize;
         this.pattern = pattern;
+        this.headRequests = headRequests;
     }
 
     /**
@@ -36,7 +33,7 @@ public class Sieve {
      * @return
      */
     public static Sieve getInstance() {
-        return null;
+        return sieve;
     }
 
     /**
@@ -45,8 +42,8 @@ public class Sieve {
      * @param pattern
      * @return
      */
-    public static Sieve getInstance(String[] allowedExtensions, int maxSize, String pattern) {
-        if (sieve == null) sieve = new Sieve(allowedExtensions, maxSize, pattern);
+    public static Sieve getInstance(String[] allowedExtensions, int maxSize, String pattern, boolean headRequests) {
+        if (sieve == null) sieve = new Sieve(allowedExtensions, maxSize, pattern, headRequests);
         return sieve;
     }
 
@@ -64,43 +61,46 @@ public class Sieve {
      */
     public boolean checkURL(String url) throws FailedRequestException {
 
-
-        boolean isInRobots = this.ignoredPages.contains(url);
-        if (isInRobots) return false;
+        for (String ignoredPath : this.ignoredPages){
+            if (url.startsWith(ignoredPath)) return false;
+        }
 
         if (!this.allowedExtensions.contains("*")) {
             boolean hasRightExtension =
                     this.getFileExtension(url)
                             .filter(extension -> this.allowedExtensions.contains(extension))
                             .isPresent();
-            if (url.lastIndexOf("/") == url.length() - 1)
-                return true;
+            if (url.lastIndexOf("/") == url.length() - 1) return true;
 
             if (!hasRightExtension) return false;
         }
 
-        return this.getFileSize(url) <= this.maxSize;
+        if (!this.headRequests)
+            return true;
+        else
+            return this.getFileSize(url) <= this.maxSize;
 
     }
 
     /**
-     * @param file
+     * @param content
      * @return
      * @throws FailedFileReadException
      */
-    public boolean checkContent(FileInputStream file) throws FailedFileReadException {
+    public boolean checkContent(String content) throws FailedFileReadException {
 
-        Charset charset = StandardCharsets.UTF_8;
-        try {
-            byte[] bytes = file.readAllBytes();
-            String fileContent = new String(bytes, charset);
+        // Check if the content matched the pattern
+        Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(content);
+        boolean match = matcher.find();
+        if (!match)
+            return false;
 
-            Pattern pattern = Pattern.compile(this.pattern, Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(fileContent);
-            return matcher.find();
-        } catch (IOException e) {
-            throw new FailedFileReadException();
-        }
+        // Check the file size if the HEAD requests are not used
+        if (this.headRequests)
+            return true;
+        return (content.length() < this.maxSize);
+
     }
 
     /**
@@ -149,17 +149,17 @@ public class Sieve {
         String extensions[] = {"html", "css", "js"};
         String ignoredPages[] = {"http://www.columbia.edu/~fdc/contact.html"};
 
-        Sieve sieve = Sieve.getInstance(extensions, 100000, "Content");
+        Sieve sieve = Sieve.getInstance(extensions, 100000, "con[a-z]*nt", false);
         sieve.addIgnoredPages(ignoredPages);
 
+        String content = "This is an example of content!";
         try {
-            File file = new File("index.html");
-            boolean validContent = sieve.checkContent(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            // Log exception
+            boolean validContent = sieve.checkContent(content);
+            System.out.println(validContent);
         } catch (FailedFileReadException e) {
             // Log exception
         }
+
     }
 
 }

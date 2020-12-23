@@ -76,7 +76,11 @@ FORMATUL FISIERULUI DE CONFIGURARE:
   - "allowed_pattern", sir de caractere pentru un sablon Regex ce trebuie sa se
     regaseasca intr-un fisier pentru a fi descarcat (optional, implicit "")
   - "skip_robotsdottxt_files", boolean care indica daca fisierele mentionate in
-    robots.txt} nu vor fi descarcate (optional, implicit "true").
+    robots.txt} nu vor fi descarcate (optional, implicit "true")
+  - "head_requests", boolean care indica daca cererile de tip HEAD sunt folosite
+    pentru determinarea lungimii unei pagini, inainte de descarcarea acesteia
+  - "max_downloaded_pages", intreg pentru numarul maxim de pagini ce vor fi
+    descarcate.
   Conform cu formatul standard al unui fisier de proprietati, pe care fisierele
   de configurare il respecta, fiecarei chei ii corespunde o valoare. Perechile
   chei-valoare trebuiesc separate intre ele prin linie noua.

@@ -16,15 +16,15 @@ class SieveTest {
     @Test
     void getInstance() {
         String[] extensions = {"html", "css", "js"};
-        assertNull(Sieve.getInstance(extensions, 1000000000, ""));
-        Sieve.getInstance(extensions, 1000000000, "");
+        assertNull(Sieve.getInstance(extensions, 1000000000, "", false));
+        Sieve.getInstance(extensions, 1000000000, "", false);
         assertNotNull(Sieve.getInstance());
     }
 
     @Test
     void addIgnoredPages() {
         String[] extensions = {"html", "css", "js"};
-        Sieve.getInstance(extensions, 1000000000, "");
+        Sieve.getInstance(extensions, 1000000000, "", false);
         String[] pages = {"php"};
         Sieve.getInstance().addIgnoredPages(pages);
     }
@@ -42,12 +42,12 @@ class SieveTest {
     @Test
     void checkContent() {
         String[] extensions = {"html", "css", "js"};
-        Sieve.getInstance(extensions, 1000000000, "123");
+        Sieve.getInstance(extensions, 1000000000, "123", false);
         try {
             FileInputStream file= new FileInputStream("D:\\test.txt");
             try {
-                assertFalse(Sieve.getInstance().checkContent(file));
-            } catch (FailedFileReadException e) {
+                assertFalse(Sieve.getInstance().checkContent(file.readAllBytes().toString()));
+            } catch (Exception e) {
                 Assertions.fail("There is an error with the URL");
             }
         } catch (FileNotFoundException e) {
@@ -60,7 +60,7 @@ class SieveTest {
     void testcheckURLexceptions() {
         String url = "http://www.combia.edu/~fdc/index.html";
         String[] extensions = {"html", "css", "js"};
-        Sieve.getInstance(extensions, 1000000000, "1234");
+        Sieve.getInstance(extensions, 1000000000, "1234", false);
         try {
             Sieve.getInstance().checkURL(url);
         } catch (FailedRequestException e) {
@@ -71,7 +71,7 @@ class SieveTest {
     @Test
     void testcheckContentexceptions() {
         String[] extensions = {"html", "css", "js"};
-        Sieve.getInstance(extensions, 1000000000, "1234");
+        Sieve.getInstance(extensions, 1000000000, "1234", false);
         try {
             FileInputStream file= new FileInputStream("D:\\test2.txt");
         } catch (FileNotFoundException e) {

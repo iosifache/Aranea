@@ -75,7 +75,8 @@ public class Aranea {
             Sieve.getInstance(
                 araneaConfiguration.getAllowedExtensions(),
                 araneaConfiguration.getAllowedMaxSize(),
-                araneaConfiguration.getAllowedPattern());
+                araneaConfiguration.getAllowedPattern(),
+                araneaConfiguration.getHeadRequests());
     }
 
     /**
@@ -172,21 +173,43 @@ public class Aranea {
      */
     private static void addIgnoredPagesToSieve(String url) {
         try {
+
             HttpURLConnection con = (HttpURLConnection) (new URL(url + "robots.txt")).openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", USER_AGENT);
+
             int responseCode = con.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+
                 BufferedReader in = new BufferedReader(new InputStreamReader(
                     con.getInputStream()));
+
                 String inputLine;
+                boolean areSaved = false;
                 List<String> ignoredPages = new ArrayList<String>();
                 while ((inputLine = in.readLine()) != null) {
-                    ignoredPages.add(url + inputLine);
+
+                    // If the lines mandatory to all crawlers is reached, then save the disallowed URLs
+                    if (inputLine.equals("User-agent: *")){
+                        areSaved = true;
+                        continue;
+                    }
+
+                    // If a new line is reached after a relevant block of disallowed URLs, then ignore the following
+                    if (inputLine.equals("") && areSaved){
+                        areSaved = false;
+                        continue;
+                    }
+
+                    if (areSaved && inputLine.startsWith("Disallow: "))
+                        ignoredPages.add(url + inputLine.substring(inputLine.indexOf("/") + 1));
+
                 }
                 String ignoredPagesAsArray[] = ignoredPages.toArray(new String[0]);
                 sieve.addIgnoredPages(ignoredPagesAsArray);
+
             }
+
         } catch (Exception e) {
             ;
         }
@@ -206,7 +229,6 @@ public class Aranea {
         List<String> list = readFileContent(file);
         boolean startCrawlers = false;
         for (String link : list) {
-
             urlQueue.add(new URL(link));
             addIgnoredPagesToSieve(link);
         }
@@ -218,7 +240,8 @@ public class Aranea {
                 USER_AGENT,
                 sieve,
                 araneaConfiguration.getMaxThreads(),
-                araneaConfiguration.getDelay());
+                araneaConfiguration.getDelay(),
+                araneaConfiguration.getMaxDownloadedPages());
             currentCrawler.start();
             crawlers.add((Crawler) currentCrawler);
         }

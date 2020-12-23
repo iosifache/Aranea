@@ -1,6 +1,7 @@
 package com.aranea;
 
 import com.aranea.AraneaException.FailedRequestException;
+import com.aranea.AraneaLogger.AraneaLoggerLevels;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -50,10 +51,10 @@ public class Crawler extends Thread {
     private final Sieve sieveInstance;
 
 
-    public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers, long initializeSleep) {
+    public Crawler(String saveDirectory, String usedUserAgent, Sieve usedSieveInstance, int ThreadNumbers, long initializeSleep, int maxDownloadedPages) {
 
         finalDirectory = saveDirectory;
-        urlQueue = URLQueue.getInstance(20);
+        urlQueue = URLQueue.getInstance(maxDownloadedPages);
         logger = AraneaLogger.getInstance();
         synchronized (this) {
             if (!isCounterInited){
@@ -326,18 +327,30 @@ public class Crawler extends Thread {
                 //extract a list of urls from the current page
                 extractedUrls = extractUrls(response, scrapUrl, untouchedUrl);
 
-                //create directories and get the save path
-                savePath = getSavePath(scrapUrl);
-
                 //filter extracted URLs using Sieve
                 if (sieveInstance != null) {
                     extractedUrls = checkSieve(extractedUrls);
                 }
-                //convert html links to relative paths
-                replacedResponse = replaceToLocal(response, extractedUrls, untouchedUrl);
 
-                //save the modify page to the save path
-                saveResponse(replacedResponse, savePath);
+                if (sieveInstance.checkContent(response.toString())) {
+
+                    try{
+
+                        //create directories and get the save path
+                        savePath = getSavePath(scrapUrl);
+
+                        // convert html links to relative paths
+                        replacedResponse = replaceToLocal(response, extractedUrls, untouchedUrl);
+
+                        // save the modify page to the save path
+                        saveResponse(replacedResponse, savePath);
+
+                    }
+                    catch (Exception e){
+                        logger.log(AraneaLoggerLevels.WARNING, "Cannot save URL: " + scrapUrl);
+                    }
+
+                }
 
                 try {
                     for (URL url : extractedUrls) {
@@ -480,7 +493,7 @@ public class Crawler extends Thread {
 
         // Init sieve
         String[] extensions = {"*"};
-        Sieve sieve = Sieve.getInstance(extensions, 1000000, "*");
+        Sieve sieve = Sieve.getInstance(extensions, 1000000, "*", false);
 
         //create URL
         try {
@@ -493,7 +506,7 @@ public class Crawler extends Thread {
 
         //Create Threads and start them
         for (int i = 0; i < thNumber; i++) {
-            Crawler crw = new Crawler("../SaveDir", "Aranea", null, thNumber, sleepTime);
+            Crawler crw = new Crawler("../SaveDir", "Aranea", null, thNumber, sleepTime, 20);
             crwList.add(crw);
         }
 

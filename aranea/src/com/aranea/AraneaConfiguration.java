@@ -21,6 +21,8 @@ public class AraneaConfiguration {
   private int allowedMaxSize = -1;
   private String allowedPattern = "";
   private boolean skipRobotsdottxtFiles = false;
+  private int maxDownloadedPages = -1;
+  private boolean headRequests = false;
 
   /**
    * Constructor
@@ -55,6 +57,10 @@ public class AraneaConfiguration {
     this.allowedPattern = this.props.getProperty("allowed_pattern", "");
     this.skipRobotsdottxtFiles =
         Boolean.parseBoolean(this.props.getProperty("skip_robotsdottxt_files", "true"));
+    this.maxDownloadedPages = Integer.parseInt(this.props.getProperty("max_downloaded_pages",
+        Integer.toString(Integer.MAX_VALUE)));
+    this.headRequests =
+        Boolean.parseBoolean(this.props.getProperty("head_requests", "false"));
 
     AraneaLogger.getInstance().log(AraneaLoggerLevels.INFO, "Configuration file imported");
   }
@@ -148,6 +154,20 @@ public class AraneaConfiguration {
   public boolean isSkipRobotsdottxtFiles() {
     return this.skipRobotsdottxtFiles;
   }
+
+  /**
+   * Get maximum number of pages to be downloaded
+   *
+   * @return Maximum number of to be downloaded
+   */
+  public int getMaxDownloadedPages(){ return this.maxDownloadedPages; }
+
+  /**
+   * Check if HEAD requests are allowed to check file sizes before download
+   *
+   * @return Boolean indicating if HEAD requests are allowed to check file sizes before download
+   */
+  public boolean getHeadRequests(){ return this.headRequests; }
 
   /* Function to exemplify the usage */
   private void exemplifyUsage() {
